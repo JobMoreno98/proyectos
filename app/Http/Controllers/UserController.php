@@ -3,16 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\AnswerFullView;
+use App\Models\Categorias;
 use App\Models\Entry;
 use App\Models\Sections;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
     public function datos_generales()
     {
-        $datos = AnswerFullView::select('entry_id')->where('user_id', auth()->user()->id)
-            ->where('section_title', 'Datos Generales')->groupBy('entry_id')
-            ->orderBy('entry_id')->first();
+
+        $categoria = Categorias::with('secciones')->where('titulo', 'Datos Generales')->first();
+
+        $datos = AnswerFullView::select('entry_id')
+            ->where('user_id', Auth::id()) // Es mas corto usar Auth::id()
+            ->where('section_title', 'Datos Generales')
+            ->first();
+
+        if (isset($datos->entry_id)) {
+            return redirect()->route('proyectos.edit', $datos->entry_id);
+        } else {
+            $seccion = $categoria->secciones->first();
+
+            if ($seccion) {
+                return redirect()->route('proyectos.show', $seccion->id);
+            }
+        }
 
         $entry = Entry::with(['answers.question', 'answers'])->findOrFail($datos->entry_id);
 
@@ -38,7 +54,7 @@ class UserController extends Controller
 
         // 4. Cargar la estructura del formulario (Preguntas)
         $seccion = Sections::where('id', $sectionId)
-            ->with(['questions' => fn ($q) => $q->orderBy('sort_order')])
+            ->with(['questions' => fn($q) => $q->orderBy('sort_order')])
             ->first();
 
         // 5. TRUCO PRO: Mapear respuestas para acceso rápido en la vista

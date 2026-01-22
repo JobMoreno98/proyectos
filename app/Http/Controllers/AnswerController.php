@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreSurveyRequest;
 use App\Models\AnswerFullView;
 use App\Models\Entry;
 use App\Models\Sections;
+use Illuminate\Support\Facades\Auth;
 
 class AnswerController extends Controller
 {
@@ -41,7 +43,7 @@ class AnswerController extends Controller
 
         // 4. Cargar la estructura del formulario (Preguntas)
         $seccion = Sections::where('id', $sectionId)
-            ->with(['questions' => fn ($q) => $q->orderBy('sort_order')])
+            ->with(['questions' => fn($q) => $q->orderBy('sort_order')])
             ->first();
 
         // 5. TRUCO PRO: Mapear respuestas para acceso rápido en la vista
@@ -49,5 +51,37 @@ class AnswerController extends Controller
         $existingAnswers = $entry->answers->pluck('value', 'question_id')->toArray();
 
         return view('respuestas.edit', compact('entry', 'seccion', 'existingAnswers'));
+    }
+    public function show($id)
+    {
+        $seccion = Sections::with('questions')->where('id', $id)->first();
+
+        return view('respuestas.create', compact('seccion'));
+    }
+    public function store(StoreSurveyRequest $request)
+    {
+        $validated = $request->validated();
+
+        // 1. Crear el Entry (El contenedor del envío)
+        $entry = Entry::create([
+            'user_id' => Auth::user()->id, // o null si es anónimo
+        ]);
+
+        // 2. Guardar las respuestas vinculadas a ese Entry
+        foreach ($validated['answers'] as $questionId => $value) {
+            // Lógica de archivos (igual que antes)
+            if ($request->hasFile("answers.{$questionId}")) {
+                $value = $request->file("answers.{$questionId}")->store('uploads', 'public');
+            }
+
+            // Usamos la relación para crear (asumiendo que definiste hasMany en Entry)
+            $entry->answers()->create([
+                'question_id' => $questionId,
+                'value' => $value,
+            ]);
+        }
+
+        return redirect()->route('proyectos.edit', $entry->id)->with('success', 'Registrado correctamente.');
+        //return back()->with('success', 'Enviado correctamente');
     }
 }
