@@ -24,7 +24,7 @@ class AnswerFullView extends Model
     {
         return Attribute::make(
             get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado')
-                ->where('pregunta', 'Título del Proyecto')
+                //->where('pregunta', 'Título del Proyecto')
                 ->where('entry_id', $attributes['entry_id'])->first()
         );
     }

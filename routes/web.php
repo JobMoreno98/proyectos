@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AnswerController;
+use App\Http\Controllers\CategoriasController;
+use App\Http\Controllers\DashboardController;
 use App\Models\Answer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -9,12 +11,15 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
-    ->middleware(['auth', 'verified'])
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('auth')
     ->name('dashboard');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
+
     Route::resource('proyectos', AnswerController::class)->except('create');
+
+    Route::get('/seccion/{categoria}', [CategoriasController::class, 'show'])->name('seccion.show');
 
     Route::get('/proyectos/{id}', [AnswerController::class, 'create'])->name('proyectos.create');
 

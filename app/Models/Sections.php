@@ -13,6 +13,7 @@ class Sections extends Model
     use SoftDeletes;
 
     protected $guarded = [];
+
     public function categorias()
 
     {
@@ -23,15 +24,20 @@ class Sections extends Model
     {
         return $this->hasMany(Questions::class, 'section_id')->orderBy('sort_order');
     }
-    
+
     public function getUserEntriesAttribute()
     {
+        return (AnswerFullView::where('user_id', Auth::user()->id)->where('section_title', $this->title)
+            ->groupBy('entry_id')
+            ->orderBy('fecha_creado')
+            ->get());
+
         return \App\Models\Entry::query()
             ->where('user_id', Auth::id())
             ->whereHas('answers.question', function ($q) {
                 $q->where('section_id', $this->id);
             })
-            ->with('answers.question') // Eager loading para optimizar
+            ->with('answers.question')
             ->get();
     }
     protected $casts = [

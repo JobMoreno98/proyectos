@@ -12,7 +12,7 @@
                     {{ session('success') }}
                 </x-alert>
             @endif
-
+            {{-- 
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -23,7 +23,7 @@
                     </ul>
                 </div>
             @endif
-
+ --}}
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
             <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
@@ -67,7 +67,9 @@
                                 if (!view()->exists("components.{$componentName}")) {
                                     $componentName = 'inputs.text';
                                 }
+
                             @endphp
+
                             @if ($question->type != 'sub_form')
                                 <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
                             @endif
@@ -95,8 +97,10 @@
                                         }
                                     @endphp
                                     @if ($childSection)
-                                        <div class="col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
-                                            <h4 class="col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">{{ $childSection->title }} </h4>
+                                        <div
+                                            class="col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                                            <h4 class="col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
+                                                {{ $childSection->title }} </h4>
 
                                             {{-- Iteramos las preguntas de la sección HIJA --}}
                                             @foreach ($childSection->questions as $childQ)

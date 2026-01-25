@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnswerFullView;
 use App\Models\Categorias;
+use App\Models\Sections;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,10 +36,18 @@ class CategoriasController extends Controller
      */
     public function show(Categorias $categoria)
     {
+
         if (!isset($categoria->titulo)) {
             abort(403, 'El registro no existe.');
         }
 
+        if ($categoria->titulo == 'Generación y Aplicación del Conocimiento') {
+
+            $categorias = $categoria->secciones->where('investigacion', true);
+            $categoria->titulo = 'Proyectos de investigación';
+
+            return view('categorias.index', compact('categoria'));
+        }
         if ($categoria->titulo == 'Datos Generales') {
             $datos = AnswerFullView::select('entry_id')
                 ->where('user_id', Auth::id()) // Es mas corto usar Auth::id()
@@ -46,28 +55,12 @@ class CategoriasController extends Controller
                 ->first();
 
             if ($datos) {
-                return redirect()->route('answers.edit', $datos->entry_id);
-            } else {
-                $seccion = $categoria->secciones->first();
-                
-                if ($seccion) {
-                    return redirect()->route('answers.show', $seccion->id);
-                }
-            }
-        }
-
-        if ($categoria->titulo == 'Datos Laborales') {
-            $datos = AnswerFullView::select('entry_id')
-                ->where('user_id', Auth::id()) // Es mas corto usar Auth::id()
-                ->where('section_title', 'Datos Laborales')
-                ->first();
-            if ($datos) {
-                return redirect()->route('answers.edit', $datos->entry_id);
+                return redirect()->route('proyectos.edit', $datos->entry_id);
             } else {
                 $seccion = $categoria->secciones->first();
 
                 if ($seccion) {
-                    return redirect()->route('answers.show', $seccion->id);
+                    return redirect()->route('proyectos.show', $seccion->id);
                 }
             }
         }

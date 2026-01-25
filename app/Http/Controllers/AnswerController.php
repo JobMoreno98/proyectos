@@ -21,9 +21,7 @@ class AnswerController extends Controller
             ->groupBy('entry_id')
             ->orderBy('fecha_creado')
             ->get();
-
-
-
+        
         return view('respuestas.index', compact('proyectos'));
     }
 
@@ -121,7 +119,6 @@ class AnswerController extends Controller
     {
 
         $seccion = Sections::with('questions')->where('id', $id)->first();
-
         return view('respuestas.create', compact('seccion'));
     }
 

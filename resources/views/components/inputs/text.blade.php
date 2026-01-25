@@ -21,7 +21,8 @@
         {{-- Usamos old() para no perder lo escrito si falla la validación --}}
         value="{{ old($errorKey, $value) }}"
         
-        class="p-2 form-input w-full rounded-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border-gray-300"
+        class="text-center border border-stone-300 p-2 text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 
+        focus:ring focus:ring-blue-200 w-full"
         
         {{-- 2. ETIQUETA PARA EL CALCULADOR --}}
         @if($codeTag) data-code-tag="{{ $codeTag }}" @endif

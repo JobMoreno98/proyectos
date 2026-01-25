@@ -27,7 +27,7 @@ class EnsureDatosGeneralesUpdated
         }
         $targetCategoria = null;
 
-        if ($request->routeIs('categorias.show')) {
+        if ($request->routeIs('seccion.show')) {
             $param = $request->route('categoria');
             if ($param instanceof Categorias) {
                 $targetCategoria = $param;
@@ -39,15 +39,15 @@ class EnsureDatosGeneralesUpdated
         // Casos de Respodner el formulario
 
         // CASO A: Guardando (POST)
-        if ($request->routeIs('answers.store')) {
+        if ($request->routeIs('proyectos.store')) {
             $catId = $request->input('categoria_id');
             if ($catId) {
                 $targetCategoria = Categorias::find($catId);
             }
         }
         // CASO B: Show (GET)
-        if ($request->routeIs('answers.show')) {
-            $seccionId = $request->route('answer');
+        if ($request->routeIs('proyectos.show')) {
+            $seccionId = $request->route('proyecto');
             $seccion = Sections::find($seccionId);
             //dd($seccion->categoria_id);
             if ($seccion->categoria_id) {
@@ -66,6 +66,6 @@ class EnsureDatosGeneralesUpdated
 
         return redirect()
             ->route('dashboard')
-            ->with('warning', '⚠️ Acceso restringido: Debes completar "Datos Generales" primero.');
+            ->with('warning', 'Acceso restringido: Debes completar "Datos Generales" primero.');
     }
 }
