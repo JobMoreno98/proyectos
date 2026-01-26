@@ -22,9 +22,7 @@ class Navbar extends Component
      */
     public function render(): View|Closure|string
     {
-        $categorias = Categorias::whereJsonContains('sistema', 'investigacion')->orderBy('titulo')->get();
-        
-        $categorias = $categorias->map(function ($categoria) {
+        $categorias = Categorias::whereJsonContains('sistema', 'investigacion')->orderBy('titulo')->get()->map(function ($categoria) {
             if ($categoria->titulo === 'Generación y Aplicación del Conocimiento') {
                 $categoria->titulo = 'Proyectos de investigación';
             }

@@ -25,4 +25,11 @@ class Entry extends Model
     {
         return $this->belongsTo(User::class);
     }
+    
+    public function proyecto()
+    {
+        return $this->hasOne(Answer::class)
+            ->whereHas('question')
+            ->with('question.section'); // para que cargue también la pregunta
+    }
 }

@@ -11,8 +11,13 @@ use Illuminate\Support\Facades\Auth;
 class Sections extends Model
 {
     use SoftDeletes;
+    const EVALUACION = 'Evaluación';
 
     protected $guarded = [];
+
+    protected $casts = [
+        'investigacion' => 'boolean',
+    ];
 
     public function categorias()
 
@@ -40,7 +45,9 @@ class Sections extends Model
             ->with('answers.question')
             ->get();
     }
-    protected $casts = [
-        'investigacion' => 'boolean',
-    ];
+
+    public static function idEvaluacion()
+    {
+        return self::select('id')->where('title',self::EVALUACION)->first()->id;
+    }
 }

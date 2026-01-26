@@ -9,6 +9,7 @@ class Categorias extends Model
     protected $guarded = [];
     const DATOS_GENERALES = 'Datos Generales';
 
+
     public function secciones()
     {
         return $this->hasMany(Sections::class, 'categoria_id');
@@ -18,5 +19,8 @@ class Categorias extends Model
     {
         return $this->titulo === self::DATOS_GENERALES;
     }
+
+
+
     //
 }

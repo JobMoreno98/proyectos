@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Policies;
+
+use App\Models\Categorias;
+use App\Models\User;
+use Illuminate\Auth\Access\Response;
+
+class CategoriasPolicy
+{
+    /**
+     * Determine whether the user can view any models.
+     */
+    public function viewAny(User $user): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can view the model.
+     */
+    public function view(User $user, Categorias $link): bool
+    {
+        $permiso = 'Ver ' . $link->titulo;
+        //dd($user->getPermissionsViaRoles(),auth()->guard()->getName());
+
+        return $user->can($permiso);
+    }
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function create(User $user): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can update the model.
+     */
+    public function update(User $user, Categorias $categorias): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can delete the model.
+     */
+    public function delete(User $user, Categorias $categorias): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can restore the model.
+     */
+    public function restore(User $user, Categorias $categorias): bool
+    {
+        return false;
+    }
+
+    /**
+     * Determine whether the user can permanently delete the model.
+     */
+    public function forceDelete(User $user, Categorias $categorias): bool
+    {
+        return false;
+    }
+}

@@ -9,13 +9,15 @@
     // Solo buscamos si hay una pregunta origen configurada
     if ($sourceQuestionId) {
         // Usamos el modelo Answer directamente
-        $options = \App\Models\Answer::query()
+        $options = \App\Models\AnswerFullView::query()
             ->where('question_id', $sourceQuestionId)
+            ->where('section_title', '!=', 'Evaluación')
+
             // Filtramos por el usuario logueado (importante)
 
             // Evitamos duplicados y obtenemos lista simple
             ->distinct()
-            ->pluck('value', 'value')
+            ->pluck('respuesta', 'entry_id')
             ->toArray();
     }
 
@@ -23,7 +25,6 @@
     $enableSearch = !empty($options) && count($options) > 10;
 
     $placeholder = $isEmpty ? 'No hay datos previos (Completa la sección anterior)' : 'Selecciona una opción...';
-    
 
 @endphp
 

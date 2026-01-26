@@ -3,6 +3,7 @@
 use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EvaluacionesController;
 use App\Models\Answer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,6 +19,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::resource('proyectos', AnswerController::class)->except('create');
+    Route::resource('evaluacion', EvaluacionesController::class);
 
     Route::get('/seccion/{categoria}', [CategoriasController::class, 'show'])->name('seccion.show');
 

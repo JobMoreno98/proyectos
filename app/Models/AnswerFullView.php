@@ -28,4 +28,5 @@ class AnswerFullView extends Model
                 ->where('entry_id', $attributes['entry_id'])->first()
         );
     }
+
 }

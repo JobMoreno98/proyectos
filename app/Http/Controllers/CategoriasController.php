@@ -48,7 +48,17 @@ class CategoriasController extends Controller
 
             return view('categorias.index', compact('categoria'));
         }
+        if ($categoria->titulo == 'Evaluación') {
+
+            $datos = AnswerFullView::select('entry_id','is_editable')
+                ->where('respuesta', Auth::user()->id) // Es mas corto usar Auth::id()
+                ->where('section_title', 'Evaluaciones')
+                ->get();
+
+            return view('evaluaciones.index', compact('datos','categoria'));
+        }
         if ($categoria->titulo == 'Datos Generales') {
+
             $datos = AnswerFullView::select('entry_id')
                 ->where('user_id', Auth::id()) // Es mas corto usar Auth::id()
                 ->where('section_title', 'Datos Generales')
