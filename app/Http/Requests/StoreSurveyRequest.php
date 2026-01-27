@@ -68,6 +68,30 @@ class StoreSurveyRequest extends FormRequest
 
             // C. Reglas por Tipo
             switch ($question->type) {
+
+                case 'scored_text':
+                    $fieldRules[] = 'array'; // El campo principal debe ser array
+
+                    // Definimos si los hijos son requeridos
+                    $subRequired = $question->is_required ? 'required' : 'nullable';
+                    $min = $question->options['min_score'] ?? 0;
+                    $max = $question->options['max_score'] ?? 10;
+
+                    // Regla para el Puntaje
+                    $rules["{$fieldKey}.score"] = [
+                        $subRequired,
+                        'numeric',
+                        'integer',
+                        "between:{$min},{$max}"
+                    ];
+
+                    // Regla para el Texto
+                    $rules["{$fieldKey}.text"] = [
+                        $subRequired,
+                        'string',
+                        'min:3' // Opcional: longitud mínima
+                    ];
+                    break;
                 case 'text':
                 case 'textarea':
                     $fieldRules[] = 'string';
@@ -169,6 +193,17 @@ class StoreSurveyRequest extends FormRequest
 
                 // Tipos
                 switch ($childQ->type) {
+
+                    case 'scored_text':
+                        $fieldRules[] = 'array';
+                        $subRequired = $childQ->is_required ? 'required' : 'nullable';
+                        $min = $childQ->options['min_score'] ?? 0;
+                        $max = $childQ->options['max_score'] ?? 10;
+
+                        $rules["{$fieldKey}.score"] = [$subRequired, 'numeric', 'integer', "between:{$min},{$max}"];
+                        $rules["{$fieldKey}.text"] = [$subRequired, 'string', 'min:3'];
+                        break;
+
                     case 'text':
                     case 'textarea':
                         $fieldRules[] = 'string';
@@ -208,7 +243,6 @@ class StoreSurveyRequest extends FormRequest
                         $validChoices = array_column($question->options['choices'] ?? [], 'value');
 
                         if (!empty($validChoices) &&  count($validChoices) > 0) {
-                            dd($validChoices);
                             // Usamos Rule::in para mayor seguridad
                             $rules["{$fieldKey}.*.tipo"] = ['required', \Illuminate\Validation\Rule::in($validChoices)];
                         } else {
@@ -249,7 +283,14 @@ class StoreSurveyRequest extends FormRequest
 
         foreach ($questions as $question) {
             // A. Mapeo para preguntas normales (answers.14)
-            $attributes['answers.' . $question->id] = $question->label;
+            // A. Mapeo para preguntas normales
+            $key = 'answers.' . $question->id;
+            $attributes[$key] = $question->label;
+
+            if ($question->type === 'scored_text') {
+                $attributes["{$key}.score"] = 'Puntuación de ' . $question->label;
+                $attributes["{$key}.text"]  = 'Justificación de ' . $question->label;
+            }
 
             // B. Mapeo para SUB-FORMULARIOS (sub_answers.31.26)
             if ($question->type === 'sub_form') {
@@ -263,18 +304,20 @@ class StoreSurveyRequest extends FormRequest
 
                     if ($childSection) {
                         foreach ($childSection->questions as $childQ) {
-                            // AQUÍ ESTÁ LA CLAVE: 
-                            // Mapeamos la ruta completa del array anidado al nombre de la pregunta hija
-                            $key = "sub_answers.{$question->id}.{$childQ->id}";
 
-                            $attributes[$key] = $childQ->label;
+                            $childKey = "sub_answers.{$question->id}.{$childQ->id}";
+                            $attributes[$childKey] = $childQ->label;
+
+                            // --- B.1 CORRECCIÓN: SCORED_TEXT DENTRO DE SUB-FORM ---
+                            if ($childQ->type === 'scored_text') {
+                                $attributes["{$childKey}.score"] = 'Puntuación de ' . $childQ->label;
+                                $attributes["{$childKey}.text"]  = 'Justificación de ' . $childQ->label;
+                            }
+                            // ------------------------------------------------------
+
                             if ($childQ->type === 'repeater_awards') {
-
-                                // Usamos el comodín '*' para que aplique a cualquier fila (0, 1, 2...)
-                                // 'nombre' y 'tipo' son los names que pusiste en tu componente Alpine
-
-                                $attributes["{$key}.*.nombre"] = 'Nombre';
-                                $attributes["{$key}.*.tipo"]   = 'Tipo';
+                                $attributes["{$childKey}.*.nombre"] = 'Nombre';
+                                $attributes["{$childKey}.*.tipo"]   = 'Tipo';
                             }
                         }
                     }

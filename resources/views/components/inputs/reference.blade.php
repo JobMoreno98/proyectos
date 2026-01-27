@@ -9,13 +9,21 @@
     // Solo buscamos si hay una pregunta origen configurada
     if ($sourceQuestionId) {
         // Usamos el modelo Answer directamente
+        $idsYaEvaluados = \App\Models\AnswerFullView::query()
+            ->where('section_title', 'Evaluaciones')
+            ->where('pregunta', 'Proyecto') // <--- OJO: Asegúrate que este sea el nombre exacto de la pregunta en la Evaluación
+            ->pluck('respuesta')
+            ->filter() // Quitamos nulos o vacíos
+            ->toArray();    
+
+        // PASO 2: Tu consulta original filtrada
         $options = \App\Models\AnswerFullView::query()
             ->where('question_id', $sourceQuestionId)
-            ->where('section_title', '!=', 'Evaluación')
+            // ->where('section_title', '!=', ...) // Ya no es tan necesario si filtras por question_id, pero mal no hace.
 
-            // Filtramos por el usuario logueado (importante)
+            // AQUÍ ESTÁ LA CLAVE: Excluir los que ya encontramos
+            ->whereNotIn('entry_id', $idsYaEvaluados)
 
-            // Evitamos duplicados y obtenemos lista simple
             ->distinct()
             ->pluck('respuesta', 'entry_id')
             ->toArray();
@@ -24,7 +32,7 @@
     $isEmpty = empty($options);
     $enableSearch = !empty($options) && count($options) > 10;
 
-    $placeholder = $isEmpty ? 'No hay datos previos (Completa la sección anterior)' : 'Selecciona una opción...';
+    $placeholder = $isEmpty ? 'No hay datos' : 'Selecciona una opción...';
 
 @endphp
 

@@ -48,6 +48,15 @@ class Sections extends Model
 
     public static function idEvaluacion()
     {
-        return self::select('id')->where('title',self::EVALUACION)->first()->id;
+        return self::select('id')->where('title', self::EVALUACION)->first()->id;
     }
+
+    public function getAllEntriesAttribute()
+    {
+        return (AnswerFullView::where('section_title', $this->title)
+            ->groupBy('entry_id')
+            ->orderBy('fecha_creado')
+            ->get());
+    }
+
 }

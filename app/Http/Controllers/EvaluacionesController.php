@@ -38,9 +38,20 @@ class EvaluacionesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show($id)
     {
-        //
+
+        $entry = Entry::with(['user', 'answers'])->findOrFail($id);
+        $idSecion = ($entry->answers->first()->question->section_id);
+
+        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+            $q->orderBy('sort_order'); // Asegurar orden correcto
+        }])->where('id', $idSecion)->orderBy('sort_order')->first();
+
+     
+        $answersMap = $entry->answers->keyBy('question_id');
+
+        return view('entries.show', compact('entry', 'seccion', 'answersMap'));
     }
 
     /**
@@ -48,25 +59,13 @@ class EvaluacionesController extends Controller
      */
     public function edit($id)
     {
-        // 1. Cargar el Entry con su Usuario y sus Respuestas
-        $entry = Entry::with(['user', 'answers'])->findOrFail($id);
-        $idSecion = ($entry->answers->first()->question->section_id);
-
-        // 2. Cargar la estructura del Formulario (Secciones -> Preguntas)
-        // Asumo que tienes un modelo Sections. Si hay múltiples formularios, filtra aquí.
-        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
-            $q->orderBy('sort_order'); // Asegurar orden correcto
-        }])->where('id', $idSecion)->orderBy('sort_order')->first();
-
-        // 3. TRUCO DE RENDIMIENTO:
-        // Mapeamos las respuestas usando el ID de la pregunta como llave.
-        // Estructura resultante: [ 105 => ObjetoRespuesta, 106 => ObjetoRespuesta ]
-        $answersMap = $entry->answers->keyBy('question_id');
-
-        return view('entries.show', compact('entry', 'seccion', 'answersMap'));
-
         $idSeccionEvaluacion = Sections::idEvaluacion();
 
+        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+            $q->orderBy('sort_order'); // Asegurar orden correcto
+        }])->where('id', $idSeccionEvaluacion)->orderBy('sort_order')->first();
+
+        return view('respuestas.create', compact('seccion'));
 
         $entry = Entry::with('proyecto')->findOrFail($id);
 
@@ -76,13 +75,10 @@ class EvaluacionesController extends Controller
         $proyectoAsignado = Entry::with(['answers.question', 'answers'])->findOrFail($proyectoAsignado->entry_id);
 
         foreach ($proyectoAsignado->answers as $key => $value) {
-            dd($value->entry_id, $value->question->section_id);
             echo dd($value->question->section->questions[16]) . "<br/>";
         }
 
         $seccion = Sections::with('questions')->where('id', $idSeccionEvaluacion)->first();
-
-        return view('respuestas.create', compact('seccion'));
     }
 
     /**

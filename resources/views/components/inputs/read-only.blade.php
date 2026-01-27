@@ -7,7 +7,6 @@
         return;
     }
 @endphp
-
 @switch($type)
 
     {{-- CASO ESPECIAL: SCORED TEXT (Tu nuevo campo) --}}
@@ -64,7 +63,7 @@
                 }
             }
         @endphp
-        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-sm text-sm font-medium bg-blue-100 text-blue-800">
             {{ $display }}
         </span>
     @break

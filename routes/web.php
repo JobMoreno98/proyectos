@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
 })->name('home');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -19,6 +19,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::resource('proyectos', AnswerController::class)->except('create');
+    
     Route::resource('evaluacion', EvaluacionesController::class);
 
     Route::get('/seccion/{categoria}', [CategoriasController::class, 'show'])->name('seccion.show');

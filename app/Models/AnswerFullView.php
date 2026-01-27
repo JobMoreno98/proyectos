@@ -14,13 +14,13 @@ class AnswerFullView extends Model
 
     protected $casts = [
         'is_editable' => 'boolean',
-        'fecha_creado' => 'date'
+        'fecha_creado' => 'date',
     ];
     public function entry()
     {
         return $this->belongsTo(Entry::class);
     }
-    protected function titulo(): Attribute
+    protected function info(): Attribute
     {
         return Attribute::make(
             get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado')
@@ -29,4 +29,30 @@ class AnswerFullView extends Model
         );
     }
 
+    protected function titulo_proyecto(): Attribute
+    {
+        return Attribute::make(
+            get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado')
+                //->where('pregunta', 'Título del Proyecto')
+                ->where('entry_id', $attributes['entry_id'])->first()
+        );
+    }
+
+
+    public function getProyectoAttribute()
+    {
+        $targetId = trim(str_replace(['"', "'"], '', $this->respuesta));
+
+        $nombresPreguntas = ['Título del Proyecto', 'Folio'];
+
+        $respuestas = AnswerFullView::where('entry_id', $targetId)
+            ->whereIn('pregunta', $nombresPreguntas)
+            ->pluck('respuesta', 'pregunta');
+
+        // Retorno
+        return [
+            'titulo'      => $respuestas['Título del Proyecto'] ?? 'N/A',
+            'folio' => $respuestas['Folio'] ?? 'N/A',
+        ];
+    }
 }

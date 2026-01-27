@@ -14,11 +14,12 @@
                 </x-flux::button>
                 <div class="p-6">
                     @php
-                        $entries = $value->user_entries;
+                        $entries = $value->all_entries;
                     @endphp
                     @if ($entries->count() > 0)
                         <ul class="divide-y divide-gray-100">
                             @foreach ($entries as $entry)
+                                
                                 <li
                                     class="py-3 flex justify-between items-center hover:bg-gray-50 transition p-2 rounded">
                                     <div class="flex items-center">
@@ -30,8 +31,9 @@
                                          --}}
                                         <span class="font-medium text-gray-700">
 
-                                            {{ isset($entry->titulo->respuesta) ? $entry->titulo->respuesta : '' }} <br>
-                                            {{ $entry->titulo->fecha_creado->format('d/m/Y') }}
+                                            Folio :{{ isset($entry->proyecto['folio']) ? $entry->proyecto['folio'] : 'Error al leer el folio' }} <br>
+                                            Título: {{ isset($entry->proyecto['titulo']) ? $entry->proyecto['titulo'] : 'Error al leer el titulo' }} <br>
+                                            Fecha: {{ $entry->fecha_creado->format('d/m/Y') }}
                                         </span>
                                     </div>
 

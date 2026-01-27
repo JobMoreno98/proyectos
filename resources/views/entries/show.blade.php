@@ -6,6 +6,7 @@
     // Si existe, buscamos su respuesta en el mapa de respuestas
     $folioValue =
         $folioQuestion && isset($answersMap[$folioQuestion->id]) ? $answersMap[$folioQuestion->id]->value : 'S/F'; // 'S/F' = Sin Folio (por si acaso no existe)
+
 @endphp
 
 <x-layouts::app>
@@ -14,9 +15,11 @@
         {{-- ENCABEZADO: Título de la Sección y Datos del Entry --}}
         <div class="bg-white shadow rounded-lg mb-6 overflow-hidden">
             <div class="bg-blue-600 px-6 py-4">
-                <h1 class="text-xl font-bold text-white">{{ $seccion->title }}</h1>
+                <h1 class="text-xl font-bold text-white uppercase text-center">Información {{ $seccion->title }}</h1>
+                {{-- 
                 <p class="text-blue-100 text-sm">Respuesta #{{ $entry->id }} |
                     {{ $entry->created_at->format('d/m/Y H:i') }}</p>
+                      --}}
             </div>
         </div>
 
@@ -29,8 +32,8 @@
                 // 1. Buscamos la respuesta del PADRE
                 $answer = $answersMap[$question->id] ?? null;
                 $val = $answer ? $answer->value : null;
+                //dd($val);
             @endphp
-
             @if ($question->type === 'sub_form')
                 @php
                     // A. Configuración
@@ -54,10 +57,6 @@
                         }
                     }
                 @endphp
-                @if ($question->label == 'Folio')
-                    {{ $val }}
-                @endif
-
                 @if ($childSection && $childEntryId)
                     <div class="mt-6 mb-8 border border-blue-200 rounded-lg overflow-hidden">
                         <div class="bg-blue-50 px-4 py-3 border-b border-blue-100 flex justify-between items-center">
@@ -98,8 +97,6 @@
 
                     <p class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
                         {{ $question->label }}
-
-
                     </p>
 
                     <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options" />

@@ -2,10 +2,11 @@
 
 @php
     $name = $name ?? "answers[{$question->id}]";
-    $errorKey = "answers.{$question->id}";
+    $errorKey = str_replace(['[', ']'], ['.', ''], $name);
 @endphp
 
-<x-inputs.wrapper class="col-span-1 md:col-span-2" :label="$question->label" :name="$errorKey" :required="$question->is_required" :helper-text="$question->helper_text">
+<x-inputs.wrapper class="col-span-1 md:col-span-2" :label="$question->label" :name="$errorKey" :required="$question->is_required"
+    :helper-text="$question->helper_text">
 
     {{-- Contenedor Alpine para manejar la lógica del editor --}}
     <div x-data="{

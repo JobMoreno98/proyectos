@@ -17,4 +17,7 @@ class Answer extends Model
     {
         return $this->belongsTo(Questions::class);
     }
+    protected $casts = [
+        'value' => 'array',
+    ];
 }

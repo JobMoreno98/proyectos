@@ -4,49 +4,80 @@
     $userId = auth()->id();
     $userEmailName = auth()->user()->name;
 
-    // --- 1. CONSULTAR LA VISTA SQL ---
-    // Buscamos si este usuario ya tiene datos generales registrados
-    $perfil = \App\Models\ViewDatosGenerales::find($userId);
-
-    $nombre = '';
+    // --- 1. CONSULTAR DATOS DEL USUARIO ---
+    $perfil = \App\Models\ViewDatosGenerales::where('user_id', $userId)->first();
+    $nombreCompleto = '';
 
     if ($perfil && !empty($perfil->datos_json)) {
-        $userId = $perfil->datos_json['Código'];
-        // Obtenemos el nombre del JSON (Asegúrate que la key coincida con tu BD)
-        $nombreParaCodigo = $perfil->datos_json['Nombres'] ?? ($perfil->datos_json['Nombres'] ?? null);
-        $apellidoPaterno = $perfil->datos_json['Apellido Paterno'] ?? ($perfil->datos_json['Apellido Paterno'] ?? null);
-        $apellidoMaterno = $perfil->datos_json['Apellido Materno'] ?? ($perfil->datos_json['Apellido Materno'] ?? null);
-        $nombre = $nombreParaCodigo . ' ' . $apellidoPaterno . ' ' . $apellidoMaterno;
+        // Usamos el código del perfil si existe
+        $userId = str_replace('"','',$perfil->datos_json['Código']) ?? $userId;
+
+        $nombres = $perfil->datos_json['Nombres'] ?? '';
+        $paterno = $perfil->datos_json['Apellido Paterno'] ?? '';
+        $materno = $perfil->datos_json['Apellido Materno'] ?? '';
+        $nombreCompleto = str_replace('"','',trim("$nombres $paterno $materno"));
     }
-    // --- 2. DEFINIR EL NOMBRE FINAL ---
-    // Prioridad: Vista SQL > Nombre del Usuario Logueado
-    $staticName = $nombre ?: $userEmailName;
 
-    // Escapamos comillas simples por si alguien se llama "D'Artagnan" para no romper el JS
-    $staticNameSafe = addslashes($staticName);
-
+    // Nombre final (Vista SQL > Auth User Name)
+    $staticName = $nombreCompleto ?: $userEmailName;
     $initialValue = $value ?? '';
+
+    // --- 2. OBTENER ID DEL ENTRY DE FORMA SEGURA ---
+    // A veces la ruta devuelve el objeto Modelo, a veces el ID string.
+    $routeEntry = request()->route('entry') ?? request()->route('answer'); // Ajusta según tu nombre de ruta
+    $entryId = null;
+
+    if ($routeEntry) {
+        $entryId = $routeEntry instanceof \Illuminate\Database\Eloquent\Model ? $routeEntry->id : $routeEntry;
+    }
 @endphp
 
-<div {{-- Pasamos el nombre estático a la configuración de JS --}} x-data="systemCodeGenerator({
-    initialCode: '{{ $initialValue }}',
-    userId: '{{ $userId }}',
-    currentYear: '{{ date('Y') }}',
-    staticName: '{!! $staticNameSafe !!}'
-    {{-- Usamos {!! !!} porque ya aplicamos addslashes --}}
-})" x-on:recalculate-code.window="generate()" x-init="initComponent()"
-    class="" :helper-text="$question->helper_text">
-    <h4 class="text-sm font-bold  uppercase mb-2 flex items-center gap-2">
-        {{ $question->label }} <span class="text-red-400" x-text="code"></span>
-    </h4>
+{{-- Usamos el Wrapper para que tenga Label, Asterisco rojo y Helper Text --}}
+<x-inputs.wrapper :label="$question->label" :required="$question->is_required" :helper-text="$question->helper_text" :name="'answers.' . $question->id">
 
-    <input type="hidden" name="answers[{{ $question->id }}]" x-model="code">
-    {{-- 
-    <p class="text-xs text-blue-400 mt-2">
-        * Generado con datos de: <strong>{{ $staticName }}</strong>
-    </p>
-     --}}
-</div>
+    <div x-data="systemCodeGenerator({
+        initialCode: @js($initialValue),
+        userId: @js($userId),
+        currentYear: @js(date('Y')),
+        staticName: @js($staticName),
+        questionId: @js($question->id),
+        entryId: @js($entryId),
+        urlApi: @js(route('api.validate.folio'))
+    })" x-on:recalculate-code.window="generate()" x-init="initComponent()" class="relative">
+        {{-- VISUALIZACIÓN DEL CÓDIGO GENERADO --}}
+        <div class="flex items-center gap-2 p-3 bg-gray-50 border border-gray-200 rounded-md">
+
+            {{-- Icono de Hash --}}
+            <span class="text-gray-400">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"></path>
+                </svg>
+            </span>
+
+            {{-- El Código --}}
+            <span class="text-lg font-mono font-bold text-gray-700 tracking-wider"
+                x-text="code || 'Generando...'"></span>
+
+            {{-- Spinner de carga --}}
+            <svg x-show="isLoading" class="animate-spin h-5 w-5 text-blue-500 ml-auto"
+                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                </circle>
+                <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                </path>
+            </svg>
+        </div>
+
+        {{-- INPUT OCULTO (Lo que se envía al servidor) --}}
+        <input type="hidden" name="answers[{{ $question->id }}]" x-model="code">
+
+        {{-- Debug visual (opcional) --}}
+        {{-- <p class="text-xs text-gray-400 mt-1">Generado para: {{ $staticName }}</p> --}}
+    </div>
+
+</x-inputs.wrapper>
 
 <script>
     document.addEventListener('alpine:init', () => {
@@ -55,70 +86,85 @@
             userId: config.userId,
             year: config.currentYear,
             staticName: config.staticName,
-            questionId: '{{ $question->id }}', // <--- Necesitamos pasar esto
-            entryId: '{{ request()->route('entry') }}', // <--- Intentamos obtener el ID si es edición (ajusta según tu ruta)
-            isLoading: false, // Para mostrar un spinner si quieres
+            questionId: config.questionId,
+            entryId: config.entryId,
+            urlApi: config.urlApi,
+            isLoading: false,
 
             initComponent() {
+                // Si no hay código guardado, generamos uno nuevo
                 if (!this.code) {
                     this.generate();
                 }
             },
 
-            // Hacemos la función ASYNC para poder esperar al servidor
             async generate() {
-                // --- 1. LÓGICA DE CÁLCULO BASE (IGUAL QUE ANTES) ---
-                let nameVal = '';
+                // --- 1. OBTENER VARIABLES DEL DOM ---
+                let nameVal = this.staticName;
 
-                // Buscar input físico
+                // Intentamos buscar inputs dinámicos si existen
                 let nameInput = document.querySelector('[data-code-tag="source_name"]');
-                if (nameInput) {
+                if (nameInput && nameInput.value) {
                     nameVal = nameInput.value;
-                } else {
-                    nameVal = this.staticName;
                 }
 
-                // Buscar input tipo
                 let typeInput = document.querySelector('[data-code-tag="source_type"]');
-                let typeVal = 'X';
+                let typeVal = 'X'; // Default
                 if (typeInput) {
-                    if (typeInput.tomselect) typeVal = typeInput.tomselect.getValue() || 'X';
-                    else typeVal = typeInput.value || 'X';
+                    // Soporte para TomSelect o Select normal
+                    if (typeInput.tomselect) typeVal = typeInput.tomselect.getValue();
+                    else typeVal = typeInput.value;
+
+                    if (!typeVal) typeVal = 'X';
                 }
 
-                // Calcular iniciales
+                // --- 2. CALCULAR INICIALES ---
                 let initials = 'XX';
                 if (nameVal) {
-                    initials = nameVal.trim().split(/\s+/).map(w => w.charAt(0)).join('')
-                        .toUpperCase();
+                    // Tomamos primeras letras de cada palabra
+                    initials = nameVal.trim()
+                        .split(/\s+/)
+                        .map(w => w.charAt(0))
+                        .join('')
+                        .toUpperCase()
+                        .substring(0, 4); // Limitamos a 4 letras por si acaso
                 }
 
-                // --- CÓDIGO BASE ---
-                let baseCode = `${this.userId}_${initials}_${this.year}_${typeVal}`;
+                // --- 3. CÓDIGO BASE (PRE-VALIDACIÓN) ---
+                let baseCode = `${this.userId}-${initials}-${this.year}-${typeVal}`;
 
-                // --- 2. CONSULTA AL SERVIDOR (LA NOVEDAD) ---
-                // Llamamos a la ruta que creamos en el Paso 1
+                // --- 4. VALIDACIÓN CON SERVIDOR ---
+                this.isLoading = true;
+
                 try {
-                    this.isLoading = true;
+                    // Construcción correcta de URL con parámetros
+                    const url = new URL(this
+                    .urlApi); // Usamos la URL completa pasada desde Blade
 
-                    // Construimos la URL. Ajusta '/api/validate-folio' si usaste otro prefijo
-                    const url = new URL("{{ route('api.validate.folio') }}");
-                    url.search = new URLSearchParams({
-                        code: baseCode,
-                        question_id: this.questionId
+                    url.searchParams.append('code', baseCode);
+                    url.searchParams.append('question_id', this.questionId);
+
+                    if (this.entryId) {
+                        url.searchParams.append('entry_id', this.entryId);
+                    }
+
+                    const response = await fetch(url.toString(), {
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
                     });
-                    // Si tenemos entryId (edición), lo enviamos para no bloquearnos a nosotros mismos
-                    if (this.entryId) url += `&entry_id=${this.entryId}`;
 
-                    let response = await fetch(url);
-                    let data = await response.json();
+                    if (!response.ok) throw new Error('Error en validación');
 
-                    // --- 3. ACTUALIZAMOS CON EL CÓDIGO ÚNICO ---
+                    const data = await response.json();
+
+                    // Asignamos el código final (único)
                     this.code = data.unique_code;
 
                 } catch (error) {
-                    console.error('Error validando folio:', error);
-                    // Fallback: Si falla el servidor, usamos el base al menos
+                    console.error('Error generando folio:', error);
+                    // Fallback: Usamos el base si falla la API
                     this.code = baseCode;
                 } finally {
                     this.isLoading = false;
