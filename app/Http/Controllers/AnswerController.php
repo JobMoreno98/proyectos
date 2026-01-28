@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSurveyRequest;
 use App\Models\Answer;
 use App\Models\AnswerFullView;
+use App\Models\Ciclos;
 use App\Models\Entry;
 use App\Models\Sections;
 use Illuminate\Support\Facades\Auth;
@@ -21,7 +22,7 @@ class AnswerController extends Controller
             ->groupBy('entry_id')
             ->orderBy('fecha_creado')
             ->get();
-        
+
         return view('respuestas.index', compact('proyectos'));
     }
 
@@ -46,8 +47,17 @@ class AnswerController extends Controller
         $mainEntry = DB::transaction(function () use ($request, $validated) {
 
             // 1. CREAR EL ENTRY PRINCIPAL (PADRE)
+            $ciclo = Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
+            
+            
+
+
+            if (!isset($ciclo->id)) {
+                abort(403, "No hay ciclo para regsitro aun.");
+            }
             $entry = Entry::create([
                 'user_id' => Auth::id(),
+                'ciclo_id' => $ciclo->id
                 // 'is_editable' => true, // Si usas este campo
             ]);
 
@@ -77,6 +87,7 @@ class AnswerController extends Controller
                     // Se crea igual que el padre, solo cambia su contenido
                     $childEntry = Entry::create([
                         'user_id' => Auth::id(),
+                        'ciclo_id' => $ciclo->id
                     ]);
 
                     // B. VINCULAR PADRE CON HIJO
