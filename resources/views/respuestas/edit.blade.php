@@ -1,21 +1,15 @@
 @php
     $titlePage = 'Editar - ' . $seccion->title;
 @endphp
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800">
-            {{ $titlePage }}
-        </h2>
-    </x-slot>
-
-
+<x-app-layout :title="$titlePage">
     <div class="container m-auto">
-        <div class="max-w-3xl mx-auto py-10 px-4">
+        <div class="max-w-7xl mx-auto py-10 px-4">
             @if (session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6">
+                <x-alert type="success">
                     {{ session('success') }}
-                </div>
+                </x-alert>
             @endif
+
             @if ($errors->any())
                 <div class="alert alert-danger">
                     <ul>
@@ -26,89 +20,109 @@
                 </div>
             @endif
 
-            <form action="{{ route('proyectos.update', $entry->id) }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('proyectos.update', $entry->id) }}" method="POST" enctype="multipart/form-data" class="bg-white shadow-lg rounded-lg p-6 border-t-2 border-blue-500">
                 @csrf
-                @method('PUT') {{-- Importante para update --}}
-                <div class="bg-white shadow rounded-lg p-6 border-t-2 border-blue-500">
-                    {{-- Enviamos el ID de sección para la validación (StoreSurveyRequest) --}}
-                    <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
+                @method('PUT')
+                <div class="space-y-5 mt-4  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
 
-                    {{-- ... Título de sección ... --}}
+                    <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
 
                     @foreach ($seccion->questions as $question)
                         @php
                             $fieldName = "answers[{$question->id}]";
                             $errorKey = "answers.{$question->id}";
-                            $dbValue = $existingAnswers[$question->id] ?? null;
+                            $savedValue = $existingAnswers[$question->id] ?? null;
+                            $defaultValue = $question->options['default_value'] ?? '';
+                            $finalValue = old($errorKey, $savedValue ?? $defaultValue);
+
+                            $componentName = 'inputs.' . $question->type;
+                            if (!view()->exists("components.{$componentName}")) {
+                                $componentName = 'inputs.text';
+                            }
                         @endphp
 
-                        <div class="mb-4">
-                            <label>{{ $question->label }}</label>
+                        @php
+                            $isGeneratedCode = ($question->options['code_tag'] ?? '') === 'generated_code';
 
-                            @switch($question->type)
-                                @case('text')
-                                    <input type="text" name="{{ $fieldName }}" {{-- El segundo parámetro de old() es el valor por defecto (BD) --}}
-                                        value="{{ old($errorKey, $dbValue) }}"
-                                        class="border-gray-300 text-stone-900 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 w-full">
-                                @break
+                            if ($isGeneratedCode) {
+                                // ¡ALTO! Es una pregunta especial. Forzamos el componente de sistema.
+                                // Asegúrate de que el archivo sea resources/views/components/inputs/system-code.blade.php
+                                $componentName = 'inputs.system-code';
+                            } else {
+                                // 2. LÓGICA ESTÁNDAR
+                                // Si no es especial, usamos su tipo de base de datos (text, select, date...)
+                                $componentName = 'inputs.' . $question->type;
+                            }
 
-                                @case('textarea')
-                                    <textarea name="{{ $fieldName }}"
-                                        class="text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 w-full">{{ old($errorKey, $dbValue) }}</textarea>
-                                @break
+                            // 3. SEGURIDAD (FALLBACK)
+                            // Si el componente (system-code o el tipo normal) no existe físicamente, usamos 'text'
+                            if (!view()->exists("components.{$componentName}")) {
+                                $componentName = 'inputs.text';
+                            }
+                        @endphp
+                        @if ($question->type != 'sub_form')
+                            <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
+                        @endif
 
-                                @case('select')
-                                    <select name="{{ $fieldName }}"
-                                        class="text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 w-full">
-                                        <option value="">Seleccione...</option>
-                                        @forelse ($question->options['choices'] as $key => $label)
-                                            <option value="{{ $key }}" {{-- Comparamos contra old() O contra el valor de BD --}}
-                                                {{ old($errorKey, $dbValue) == $key ? 'selected' : '' }}>
-                                                {{ $label }}
-                                            </option>
-                                        @empty
-                                            <option> </option>
-                                        @endforelse
+                        {{-- Sub_form --}}
+                        @if ($question->type === 'sub_form')
+                            @php
+                                $targetSectionId = $question->options['target_section_id'];
+                                $childSection = \App\Models\Sections::with('questions')->find($targetSectionId);
 
-                                    </select>
-                                @break
+                                // Entry del sub_form (nuevo o existente)
+                                $childEntryId = $existingAnswers[$question->id] ?? null;
 
-                                @case('date')
-                                    @php $opts = $question->options ?? []; @endphp
-                                    <input type="date" name="{{ $fieldName }}" value="{{ old($errorKey, $dbValue) }}"
-                                        min="{{ $opts['min_date'] ?? '' }}" max="{{ $opts['max_date'] ?? '' }}"
-                                        class="form-input w-full">
-                                @break
+                                $childAnswers = [];
+                                if ($childEntryId) {
+                                    $childEntry = \App\Models\Entry::with('answers')->find($childEntryId);
+                                    $childAnswers = $childEntry->answers->pluck('value', 'question_id')->toArray();
+                                }
+                            @endphp
 
-                                @case('file')
-                                    {{-- Mostrar enlace al archivo actual si existe --}}
-                                    @if ($dbValue)
-                                        <div class="text-sm text-gray-600 mb-2">
-                                            Archivo actual: <a href="{{ asset('storage/' . $dbValue) }}" target="_blank"
-                                                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">Ver
-                                                archivo</a>
+                            @if ($childSection)
+                                <div
+                                    class="col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                                    <h4 class="col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
+                                        {{ $childSection->title }}
+                                    </h4>
+
+                                    @foreach ($childSection->questions as $childQ)
+                                        @php
+                                            $childInputName = "sub_answers[{$question->id}][{$childQ->id}]";
+                                            $childErrorKey = "sub_answers.{$question->id}.{$childQ->id}";
+
+                                            $childValue = old(
+                                                $childErrorKey,
+                                                $childAnswers[$childQ->id] ?? ($childQ->options['default_value'] ?? ''),
+                                            );
+
+                                            $childComponent = 'inputs.' . $childQ->type;
+                                            if (!view()->exists("components.{$childComponent}")) {
+                                                $childComponent = 'inputs.text';
+                                            }
+                                        @endphp
+
+                                        <div class="mb-3">
+                                            <x-dynamic-component :component="$childComponent" :question="$childQ" :value="$childValue"
+                                                :name="(string) $childInputName" />
                                         </div>
-                                    @endif
-
-                                    <input type="file" name="{{ $fieldName }}"
-                                        class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
-                                    <p class="text-xs text-gray-500">Deja esto vacío para mantener el archivo actual.</p>
-                                @break
-                            @endswitch
-
-                            @error($errorKey)
-                                <span class="text-red-500">{{ $message }}</span>
-                            @enderror
-                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endif
                     @endforeach
-                    <div class="flex justify-center mt-4">
+
+
+
+                    <div class="flex justify-center mt-4 col-span-2">
                         <button type="submit"
                             class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded shadow-lg transition duration-150">
                             Actualizar
                         </button>
                     </div>
                 </div>
+
             </form>
         </div>
-    </div>
 </x-app-layout>

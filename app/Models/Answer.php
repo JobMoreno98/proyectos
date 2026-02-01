@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Question;
+use App\Models\Questions;
 class Answer extends Model
 {
     protected $guarded = [];
@@ -15,7 +15,7 @@ class Answer extends Model
 
     public function question()
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Questions::class);
     }
 
     

@@ -58,11 +58,10 @@ class StoreSurveyRequest extends FormRequest
 
                 // 2. EXCEPCIÓN VITAL: Si estamos EDITANDO, ignoramos el entry actual
                 if ($this->isMethod('put') || $this->isMethod('patch')) {
-
                     // A. Obtenemos el parámetro de la ruta.
                     // OJO: Verifica en tus rutas si se llama {entry} o {id}
                     // Route::put('/survey/{entry}', ...) -> Se llama 'entry'
-                    $entryRouteParam = $this->route('answer');
+                    $entryRouteParam = $this->route('proyecto');
 
                     // B. Extraemos el ID numérico de forma segura
                     // (A veces Laravel te da el Objeto completo, a veces solo el ID string)

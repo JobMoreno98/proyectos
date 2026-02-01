@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSurveyRequest;
+use App\Models\Answer;
 use App\Models\AnswerFullView;
 use App\Models\Entry;
 use App\Models\Sections;
@@ -84,4 +85,54 @@ class AnswerController extends Controller
         return redirect()->route('proyectos.edit', $entry->id)->with('success', 'Registrado correctamente.');
         //return back()->with('success', 'Enviado correctamente');
     }
+    public function update(StoreSurveyRequest $request, $id)
+    {
+        $entry = Entry::findOrFail($id);
+        if (! $entry->is_editable) {
+            abort(403, 'El registro está bloqueado.');
+        }
+        // Seguridad
+        if ($entry->user_id !== Auth::user()->id) {
+            abort(403);
+        }
+
+        $validated = $request->validated();
+
+        foreach ($validated['answers'] as $questionId => $value) {
+
+            $question = \App\Models\Questions::find($questionId);
+            // Lógica especial para Archivos en Edición
+            if ($question->type === 'file') {
+
+                // A. ¿El usuario subió un archivo nuevo?
+                if ($request->hasFile("answers.{$questionId}")) {
+                    // Subimos y actualizamos la variable $value con la ruta
+                    $path = $request->file("answers.{$questionId}")->store('uploads', 'public');
+                    $value = $path;
+                }
+                // B. ¿No subió nada?
+                else {
+                    // IMPORTANTE: Si es archivo y no enviaron nada nuevo,
+                    // saltamos el ciclo para NO sobrescribir con NULL la BD.
+                    continue;
+                }
+            }
+
+            // USAMOS UpdateOrCreate
+            // Busca si ya existe una respuesta para este entry y esta pregunta.
+            // Si existe, actualiza el valor. Si no (ej: pregunta nueva), la crea.
+            Answer::updateOrCreate(
+                [
+                    'entry_id' => $entry->id,
+                    'question_id' => $questionId,
+                ],
+                [
+                    'value' => $value,
+                ]
+            );
+        }
+
+        return redirect()->route('proyectos.edit', $entry->id)->with('success', 'Registro actualizado correctamente.');
+    }
+    
 }

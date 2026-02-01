@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use App\Models\Question;
+use App\Models\Questions;
 use App\Models\Categorias;
 use App\Models\Entry;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +23,7 @@ class Sections extends Model
 
     public function questions()
     {
-        return $this->hasMany(Question::class, 'section_id')->orderBy('sort_order');
+        return $this->hasMany(Questions::class, 'section_id')->orderBy('sort_order');
     }
     public function getUserEntriesAttribute()
     {
