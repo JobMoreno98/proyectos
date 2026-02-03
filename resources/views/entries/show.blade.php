@@ -29,7 +29,6 @@
                 $val = $answer ? $answer->value : null;
                 //dd($val);
             @endphp
-            {{ $question->type }}
             @if ($question->type === 'sub_form')
                 @php
                     // A. Configuración
