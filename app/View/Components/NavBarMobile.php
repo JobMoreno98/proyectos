@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
-class Navbar extends Component
+class NavBarMobile extends Component
 {
     /**
      * Create a new component instance.
@@ -28,7 +28,7 @@ class Navbar extends Component
             }
             return $categoria;
         });
-
-        return view('components.navbar', ['enlaces' => $categorias]);
+        
+        return view('components.nav-bar-mobile', ['enlaces' => $categorias]);
     }
 }

@@ -22,8 +22,6 @@ class CategoriasPolicy
     public function view(User $user, Categorias $link): bool
     {
         $permiso = 'Ver ' . $link->titulo;
-        //dd($user->getPermissionsViaRoles(),auth()->guard()->getName());
-
         return $user->can($permiso);
     }
 
