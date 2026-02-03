@@ -29,6 +29,7 @@ class Navbar extends Component
             return $categoria;
         });
 
+
         return view('components.navbar', ['enlaces' => $categorias]);
     }
 }

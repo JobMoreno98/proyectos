@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Models\Categorias;
 use App\Models\Sections;
+use App\Policies\CategoriasPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Support\Facades\View;
@@ -30,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
         $sectionProyectos = Sections::where('title', 'Proyectos de Investigación')->first();
 
         View::share('idProyectos', $sectionProyectos->id);
+
+        Gate::policies(Categorias::class, CategoriasPolicy::class);
     }
 
     protected function configureDefaults(): void

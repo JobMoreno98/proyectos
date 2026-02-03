@@ -21,7 +21,8 @@ class CategoriasPolicy
      */
     public function view(User $user, Categorias $link): bool
     {
-        $permiso = 'Ver ' . $link->titulo;
+
+        return $user->can('Ver ' . $link->titulo);
         return $user->can($permiso);
     }
 

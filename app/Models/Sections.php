@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Auth;
 class Sections extends Model
 {
     use SoftDeletes;
-    const EVALUACION = 'Evaluación';
+    const EVALUACION = 'Evaluaciones';
 
     protected $guarded = [];
 

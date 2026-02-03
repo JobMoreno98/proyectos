@@ -4,7 +4,6 @@
 
 
 @foreach ($enlaces as $link)
- 
     @can('view', $link)
         @if ($profileUpdated || $link->isDatosGenerales())
             <flux:sidebar.item icon="home" :href="route('seccion.show',$link->id)"

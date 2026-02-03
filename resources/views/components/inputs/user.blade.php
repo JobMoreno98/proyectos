@@ -7,7 +7,7 @@
     // Solo buscamos si hay una pregunta origen configurada
 
     // Usamos el modelo Answer directamente
-    $options = \App\Models\User::permission('Crear Evaluación')->pluck('name', 'id')->toArray();
+    $options = \App\Models\User::permission('Crear Evaluaciones')->pluck('name', 'id')->toArray();
 
     // ============================================================
     // 2. ESTADOS VISUALES

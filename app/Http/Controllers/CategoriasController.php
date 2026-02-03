@@ -48,16 +48,15 @@ class CategoriasController extends Controller
 
             return view('categorias.index', compact('categoria'));
         }
-        if ($categoria->titulo == 'Evaluación') {
+        if ($categoria->titulo == 'Evaluaciones') {
 
             $datos = AnswerFullView::select('entry_id', 'is_editable')
-                ->where('section_title', 'Evaluaciones')
+                ->where('section_title', 'Asignaciones')
                 ->where('pregunta', 'Evaluador')
-                // Opción A: Si es columna JSON real
                 ->whereJsonContains('respuesta', Auth::id())
-                // Opción B: Si se guarda como string simple "50" pero es columna texto
-                // ->where('respuesta', (string) Auth::id()) 
                 ->get();
+
+        
 
             return view('evaluaciones.index', compact('datos', 'categoria'));
         }
