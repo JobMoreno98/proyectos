@@ -48,8 +48,8 @@ class EvaluacionesController extends Controller
             $q->orderBy('sort_order'); // Asegurar orden correcto
         }])->where('id', $idSecion)->orderBy('sort_order')->first();
 
-     
         $answersMap = $entry->answers->keyBy('question_id');
+
 
         return view('entries.show', compact('entry', 'seccion', 'answersMap'));
     }

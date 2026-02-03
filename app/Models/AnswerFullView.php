@@ -11,6 +11,7 @@ class AnswerFullView extends Model
     protected $table = 'answers_view';
 
     public $timestamps = false;
+    protected $appends = ['proyecto'];
 
     protected $casts = [
         'is_editable' => 'boolean',
@@ -24,7 +25,7 @@ class AnswerFullView extends Model
     {
         return Attribute::make(
             get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado')
-                //->where('pregunta', 'Título del Proyecto')
+                ->where('pregunta', 'Proyecto')
                 ->where('entry_id', $attributes['entry_id'])->first()
         );
     }
@@ -48,6 +49,7 @@ class AnswerFullView extends Model
         $respuestas = AnswerFullView::where('entry_id', $targetId)
             ->whereIn('pregunta', $nombresPreguntas)
             ->pluck('respuesta', 'pregunta');
+        dd("Entry", $this);
 
         // Retorno
         return [

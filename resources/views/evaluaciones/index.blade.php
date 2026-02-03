@@ -6,9 +6,11 @@
         </p>
         <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
             @forelse ($datos as $key => $value)
-                <li class="py-3 flex border b-3 rounded-lg boder-stone-300 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
+                <li
+                    class="py-3 flex border b-3 rounded-lg boder-stone-300 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
                     <div class="flex items-center">
                         <span class="font-medium text-gray-700">
+                           
                             {{ isset($value->info->respuesta) ? $value->info->respuesta : '' }} <br>
                             {{ $value->info->fecha_creado->format('d/m/Y') }}
                         </span>
@@ -17,7 +19,7 @@
 
                     <div class="flex space-x-3">
                         <div class="flex space-x-3">
-                            
+
                             <a href="{{ route('evaluacion.show', $value->info->respuesta) }}"
                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                 <flux:icon.document variant="solid" />

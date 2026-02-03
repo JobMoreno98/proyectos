@@ -4,8 +4,7 @@
     $folioQuestion = $seccion->questions->firstWhere('label', 'Folio');
 
     // Si existe, buscamos su respuesta en el mapa de respuestas
-    $folioValue =
-        $folioQuestion && isset($answersMap[$folioQuestion->id]) ? $answersMap[$folioQuestion->id]->value : 'S/F'; // 'S/F' = Sin Folio (por si acaso no existe)
+    $folioValue = $folioQuestion && isset($answersMap[$folioQuestion->id]) ? $answersMap[$folioQuestion->id]->value : 'S/F'; // 'S/F' = Sin Folio (por si acaso no existe)
 
 @endphp
 
@@ -22,10 +21,6 @@
                       --}}
             </div>
         </div>
-
-        {{-- CUERPO: Lista de Preguntas y Respuestas --}}
-
-
         @foreach ($seccion->questions as $question)
 
             @php
@@ -34,6 +29,7 @@
                 $val = $answer ? $answer->value : null;
                 //dd($val);
             @endphp
+            {{ $question->type }}
             @if ($question->type === 'sub_form')
                 @php
                     // A. Configuración

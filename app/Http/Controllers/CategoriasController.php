@@ -53,7 +53,7 @@ class CategoriasController extends Controller
             $datos = AnswerFullView::select('entry_id', 'is_editable')
                 ->where('section_title', 'Asignaciones')
                 ->where('pregunta', 'Evaluador')
-                ->whereJsonContains('respuesta', Auth::id())
+                ->where('respuesta', Auth::id())
                 ->get();
 
         

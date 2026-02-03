@@ -48,8 +48,8 @@ class AnswerController extends Controller
 
             // 1. CREAR EL ENTRY PRINCIPAL (PADRE)
             $ciclo = Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
-            
-            
+
+
 
 
             if (!isset($ciclo->id)) {
@@ -189,8 +189,9 @@ class AnswerController extends Controller
         }
 
         $validated = $request->validated();
+        $ciclo = $entry->ciclo_id;
 
-        DB::transaction(function () use ($request, $validated, $entry) {
+        DB::transaction(function () use ($request, $validated, $entry, $ciclo) {
 
             // ... (PARTE 1: RESPUESTAS PADRE - SE MANTIENE IGUAL) ...
             if (!empty($validated['answers'])) {
@@ -237,6 +238,7 @@ class AnswerController extends Controller
                         // CREACIÓN: Solo ID y User_ID
                         $childEntry = Entry::create([
                             'user_id' => Auth::id(),
+                            'ciclo_id' =>  $ciclo
                             // 'section_id' => ... ELIMINADO (No existe en tu tabla)
                             // 'status' => ... ELIMINADO
                         ]);
