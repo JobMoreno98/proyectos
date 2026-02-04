@@ -62,7 +62,7 @@
 
                         {{-- Cuerpo del Sub-form --}}
                         <div
-                            class="col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                            class="space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
                             @foreach ($childSection->questions as $childQ)
                                 @php
                                     $childAnswer = $childAnswersMap[$childQ->id] ?? null;
@@ -70,7 +70,7 @@
                                 @endphp
 
                                 <div class="pl-2">
-                                    <p class="col-span-2 text-stone-800 font-bold mb-3 border-b-2 border-blue-500">
+                                    <p class="text-stone-800 font-bold mb-3 border-b-2 border-blue-500">
                                         {{ $childQ->label }}
                                     </p>
 
@@ -88,7 +88,7 @@
                 @endif
             @else
                 <div
-                    class="col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                    class="md:col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
 
                     <p class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
                         {{ $question->label }}

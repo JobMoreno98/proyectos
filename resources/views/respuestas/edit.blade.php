@@ -82,8 +82,8 @@
 
                             @if ($childSection)
                                 <div
-                                    class="col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
-                                    <h4 class="col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
+                                    class="md:col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                                    <h4 class="md:col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
                                         {{ $childSection->title }}
                                     </h4>
 
@@ -115,7 +115,7 @@
 
 
 
-                    <div class="flex justify-center mt-4 col-span-2">
+                    <div class="flex justify-center mt-4 md:col-span-2">
                         <button type="submit"
                             class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded shadow-lg transition duration-150">
                             Actualizar

@@ -39,7 +39,7 @@
                         <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
                     @endif
 
-                    <div class="space-y-5 mt-4  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center ">
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 ">
                         @foreach ($seccion->questions as $question)
                             @php
                                 $fieldName = "answers[{$question->id}]";
@@ -71,7 +71,7 @@
                             @endphp
 
                             @if ($question->type != 'sub_form')
-                                <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
+                                <x-dynamic-component  :component="$componentName" :question="$question" :value="$finalValue" />
                             @endif
 
                             @switch($question->type)
@@ -98,8 +98,8 @@
                                     @endphp
                                     @if ($childSection)
                                         <div
-                                            class="col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
-                                            <h4 class="col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
+                                            class="md:col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
+                                            <h4 class="md:col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
                                                 {{ $childSection->title }} </h4>
 
                                             {{-- Iteramos las preguntas de la sección HIJA --}}
@@ -135,7 +135,7 @@
                             @endswitch
                         @endforeach
                     </div>
-                    <div class="flex justify-center mt-4 col-span-2">
+                    <div class="flex justify-center mt-4 grid-cols-1 md:grid-cols-2">
                         <button type="submit"
                             class="bg-blue-600 text-xs hover:bg-blue-700 text-white font-bold py-1 px-4 rounded shadow-lg transition duration-150">
                             Guardar

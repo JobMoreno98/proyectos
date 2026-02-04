@@ -5,7 +5,7 @@
     $errorKey = str_replace(['[', ']'], ['.', ''], $name);
 @endphp
 
-<x-inputs.wrapper class="col-span-1 md:col-span-2" :label="$question->label" :name="$errorKey" :required="$question->is_required"
+<x-inputs.wrapper class="" :label="$question->label" :name="$errorKey" :required="$question->is_required"
     :helper-text="$question->helper_text">
 
     {{-- Contenedor Alpine para manejar la lógica del editor --}}
@@ -34,8 +34,8 @@
                 this.content = quill.root.innerHTML;
             });
         }
-    }" x-init="initQuill()" class="mt-1" wire:ignore {{-- Agregamos wire:ignore por si usas Livewire en el futuro para evitar re-renderizados --}}>
-        {{-- Área visual del editor (Quill la usará) --}}
+    }" x-init="initQuill()" class="mt-1" wire:ignore >
+
         <div x-ref="editor" class="w-full  bg-white rounded-t-none !rounded-b-md" style="min-height: 100px;"></div>
 
         {{-- Input oculto real que se enviará en el formulario --}}
