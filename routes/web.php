@@ -19,8 +19,10 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
 Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::resource('proyectos', AnswerController::class)->except('create');
-    
-    Route::resource('evaluacion', EvaluacionesController::class);
+
+    Route::resource('evaluacion', EvaluacionesController::class)->except('show');
+
+    Route::get('/ver-informacion/{id}', [EvaluacionesController::class, 'show'])->name('infor.form');
 
     Route::get('/seccion/{categoria}', [CategoriasController::class, 'show'])->name('seccion.show');
 

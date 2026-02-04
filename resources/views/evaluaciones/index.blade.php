@@ -20,7 +20,7 @@
                     <div class="flex space-x-3">
                         <div class="flex space-x-3">
 
-                            <a href="{{ route('evaluacion.show', $value->info->respuesta) }}"
+                            <a href="{{ route('infor.form', $value->info->respuesta) }}"
                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                 <flux:icon.document variant="solid" />
                             </a>

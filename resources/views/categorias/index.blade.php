@@ -44,7 +44,7 @@
                                     <div class="flex space-x-3">
                                         <div class="flex space-x-3">
 
-                                            <a href="{{ route('proyectos.edit', $entry->entry_id) }}"
+                                            <a href="{{ route('infor.form', $entry->entry_id) }}"
                                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                                 <flux:icon.printer variant="mini" />
                                             </a>
