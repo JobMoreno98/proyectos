@@ -47,6 +47,7 @@ class CategoriasController extends Controller
             $categoria->titulo = 'Proyectos de investigación';
 
             return view('categorias.index', compact('categoria'));
+            
         }
         if ($categoria->titulo == 'Evaluaciones') {
 

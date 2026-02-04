@@ -11,7 +11,7 @@
                     <div class="flex items-center">
                         <span class="font-medium text-gray-700">
                            
-                            {{ isset($value->info->respuesta) ? $value->info->respuesta : '' }} <br>
+                            {{ isset($value->info->proyecto['titulo']) ? $value->info->proyecto['titulo'] : '' }} <br>
                             {{ $value->info->fecha_creado->format('d/m/Y') }}
                         </span>
                     </div>

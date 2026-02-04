@@ -49,12 +49,10 @@ class AnswerController extends Controller
             // 1. CREAR EL ENTRY PRINCIPAL (PADRE)
             $ciclo = Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
 
-
-
-
             if (!isset($ciclo->id)) {
                 abort(403, "No hay ciclo para regsitro aun.");
             }
+
             $entry = Entry::create([
                 'user_id' => Auth::id(),
                 'ciclo_id' => $ciclo->id
@@ -140,11 +138,13 @@ class AnswerController extends Controller
     {
 
         $entry = Entry::with(['answers.question', 'answers'])->findOrFail($id);
+        //dd($entry, Auth::user()->id);
 
         // 2. Seguridad: Verificar que el entry pertenece al usuario logueado
-        if ($entry->user_id !== Auth::user()->id) {
+        if (($entry->user_id !== Auth::user()->id)) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
+
         if (! $entry->is_editable) {
             return redirect()->route('dashboard')
                 ->with('error', 'Este formulario ya fue enviado y no puede ser modificado.');

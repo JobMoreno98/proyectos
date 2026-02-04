@@ -53,7 +53,7 @@ class Sections extends Model
 
     public function getAllEntriesAttribute()
     {
-        return (AnswerFullView::where('section_title', $this->title)
+        return (AnswerFullView::where('user_id', Auth::user()->id)->where('section_title', $this->title)
             ->groupBy('entry_id')
             ->orderBy('fecha_creado')
             ->get());
