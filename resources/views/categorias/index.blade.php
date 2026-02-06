@@ -4,8 +4,6 @@
         <p class="text-center text-stone-900">
             {{ $categoria->descripcion }}
         </p>
-
-
         @foreach ($categoria->secciones->where('investigacion', true) as $key => $value)
             <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
                 {{ $value->title }} <br>

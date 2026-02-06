@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Questions;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class StoreSurveyRequest extends FormRequest
@@ -54,20 +55,21 @@ class StoreSurveyRequest extends FormRequest
             // B. Regla Única (Tu lógica existente se mantiene igual)
             if ($question->is_unique) {
 
-                $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $question->id);
+                $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $question->id)->where('user_id', '!=', Auth::user()->id);
 
                 if ($this->isMethod('put') || $this->isMethod('patch')) {
-                    $entryRouteParam = $this->route('answer'); // O 'entry', verifica tu ruta
+                    $entryRouteParam = $this->route('proyecto'); // O 'entry', verifica tu ruta
 
                     $entryIdToIgnore = ($entryRouteParam instanceof \Illuminate\Database\Eloquent\Model)
                         ? $entryRouteParam->id
                         : $entryRouteParam;
 
+                    
                     if ($entryIdToIgnore) {
                         $uniqueRule->whereNot('entry_id', $entryIdToIgnore);
                     }
                 }
-            
+
                 $fieldRules[] = $uniqueRule;
             }
 

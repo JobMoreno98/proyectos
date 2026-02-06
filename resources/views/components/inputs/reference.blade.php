@@ -5,25 +5,22 @@
     $options = [];
     $sourceQuestionId = $question->options['source_question_id'] ?? null;
     $inputName = $name ?? "answers[{$question->id}]";
+    //dd($value);
 
     // Solo buscamos si hay una pregunta origen configurada
     if ($sourceQuestionId) {
         // Usamos el modelo Answer directamente
         $idsYaEvaluados = \App\Models\AnswerFullView::query()
-            ->where('section_title', 'Evaluaciones')
+            ->where('section_title', 'Asignaciones')
+            ->where('respuesta', '!=', $value)
             ->where('pregunta', 'Proyecto') // <--- OJO: Asegúrate que este sea el nombre exacto de la pregunta en la Evaluación
             ->pluck('respuesta')
             ->filter() // Quitamos nulos o vacíos
-            ->toArray();    
-
-        // PASO 2: Tu consulta original filtrada
+            ->toArray();
+        
         $options = \App\Models\AnswerFullView::query()
             ->where('question_id', $sourceQuestionId)
-            // ->where('section_title', '!=', ...) // Ya no es tan necesario si filtras por question_id, pero mal no hace.
-
-            // AQUÍ ESTÁ LA CLAVE: Excluir los que ya encontramos
             ->whereNotIn('entry_id', $idsYaEvaluados)
-
             ->distinct()
             ->pluck('respuesta', 'entry_id')
             ->toArray();
@@ -35,12 +32,6 @@
     $placeholder = $isEmpty ? 'No hay datos' : 'Selecciona una opción...';
 
 @endphp
-
-{{-- 
-    3. RENDERIZADO
-    Usamos tu componente Wrapper (ui.wrapper) para mantener el diseño consistente.
-    Le pasamos los props que tu wrapper espera.
---}}
 <x-inputs.wrapper :label="$question->label" :name="$inputName" :required="$question->is_required" :helperText="$question->helper_text" {{-- Pasamos clases extra si las hubiera --}}>
 
     {{-- ESTO ES EL SLOT: El Select real --}}

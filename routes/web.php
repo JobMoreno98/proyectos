@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::get('/ver-informacion/{id}', [EvaluacionesController::class, 'show'])->name('infor.form');
 
+    Route::get('/asignar/{id}', [AnswerController::class, 'asignar'])->name('asginar.proyecto');
+
     Route::get('/seccion/{categoria}', [CategoriasController::class, 'show'])->name('seccion.show');
 
     Route::get('/proyectos/{id}', [AnswerController::class, 'create'])->name('proyectos.create');

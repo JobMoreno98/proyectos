@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AnswerFullView;
 use App\Models\Categorias;
+use App\Models\Ciclos;
 use App\Models\Sections;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -47,19 +48,28 @@ class CategoriasController extends Controller
             $categoria->titulo = 'Proyectos de investigación';
 
             return view('categorias.index', compact('categoria'));
-            
         }
-        if ($categoria->titulo == 'Evaluaciones') {
-
+        if ($categoria->titulo == 'Asignaciones') {
+            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
+            /*
             $datos = AnswerFullView::select('entry_id', 'is_editable')
                 ->where('section_title', 'Asignaciones')
                 ->where('pregunta', 'Evaluador')
                 ->where('respuesta', Auth::id())
-                ->get();
+                ->get();*/
 
-        
+            $query = AnswerFullView::where('ciclo_id', $ciclo->id)
+                ->groupBy('entry_id')
+                ->orderBy('fecha_creado');
 
-            return view('evaluaciones.index', compact('datos', 'categoria'));
+            $datos = (clone $query)->where('section_title', 'Proyectos de Investigación')->get();
+            $asignados = (clone $query)->where('section_title', 'Asignaciones')->distinct('entry_id')->get()->count();
+            //dd($asignados);
+            $porAsignar = $datos->count() - $asignados;
+
+            //dd($datos->count(), $asignados->count());
+
+            return view('asignaciones.index', compact('datos', 'categoria','porAsignar'));
         }
         if ($categoria->titulo == 'Datos Generales') {
 

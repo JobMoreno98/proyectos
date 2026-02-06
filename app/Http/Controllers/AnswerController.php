@@ -140,7 +140,7 @@ class AnswerController extends Controller
         $entry = Entry::with(['answers.question', 'answers'])->findOrFail($id);
         //dd($entry, Auth::user()->id);
 
-        // 2. Seguridad: Verificar que el entry pertenece al usuario logueado
+        // 2. Seguridad: Verificar que el entry pertenece al usuario logueado+
         if (($entry->user_id !== Auth::user()->id)) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
@@ -295,6 +295,7 @@ class AnswerController extends Controller
     public function destroy($id)
     {
         $entry = Entry::findOrFail($id);
+     
         if ($entry->user_id !== Auth::user()->id) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
@@ -303,6 +304,12 @@ class AnswerController extends Controller
                 ->with('error', 'Este formulario ya fue enviado y no puede ser modificado.');
         }
         $entry->delete();
-        return redirect()->route('proyectos.index');
+
+        return redirect()->route('dashboard');
+    }
+
+    public function asignar(Entry $id)
+    {
+        return $id;
     }
 }

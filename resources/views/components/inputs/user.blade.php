@@ -7,7 +7,8 @@
     // Solo buscamos si hay una pregunta origen configurada
 
     // Usamos el modelo Answer directamente
-    $options = \App\Models\User::permission('Crear Evaluaciones')->pluck('name', 'id')->toArray();
+    $options = \App\Models\User::select('id', 'name')->permission('Crear Evaluaciones')->get();
+    //dd($options);
 
     // ============================================================
     // 2. ESTADOS VISUALES
@@ -38,8 +39,8 @@
 
         {{-- Iteramos las opciones que sacamos de la BD --}}
         @foreach ($options as $val => $text)
-            <option value="{{ $val }}" {{-- Marcamos seleccionado si coincide con el valor guardado --}} @selected((string) $val === (string) $value)>
-                {{ $text }}
+            <option value="{{ $val }}" {{-- Marcamos seleccionado si coincide con el valor guardado --}} @selected((string) $text->id=== (string) $value)>
+                {{ $text->nombre }}
             </option>
         @endforeach
     </select>

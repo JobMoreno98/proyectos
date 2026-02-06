@@ -51,6 +51,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'datos_json' => 'array',
         ];
     }
 
@@ -77,5 +78,9 @@ class User extends Authenticatable
     {
         return $this->datosGenerales && $this->datosGenerales->fecha_registro->isCurrentYear();
     }
-
+    public function getNombreAttribute()
+    {
+        $datos = $this->datosGenerales->datos_json;
+        return (trim($datos['Nombres'], '"') ?? '') . ' ' . (trim($datos['Apellido Paterno'], '"') ?? '');
+    }
 }
