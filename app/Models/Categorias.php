@@ -20,7 +20,4 @@ class Categorias extends Model
         return $this->titulo === self::DATOS_GENERALES;
     }
 
-
-
-    //
 }

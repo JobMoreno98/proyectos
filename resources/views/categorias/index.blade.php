@@ -7,7 +7,8 @@
         @foreach ($categoria->secciones->where('investigacion', true) as $key => $value)
             <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
                 {{ $value->title }} <br>
-                <x-flux::button size="xs" :href="route('proyectos.show', $value->id)"> Agregar
+                <x-flux::button size="xs" :href="route('proyectos.show', $value->id)"> 
+                    Agregar
                     <flux:icon name="plus" variant="micro" />
                 </x-flux::button>
                 <div class="p-6">

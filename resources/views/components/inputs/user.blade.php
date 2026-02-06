@@ -39,7 +39,7 @@
 
         {{-- Iteramos las opciones que sacamos de la BD --}}
         @foreach ($options as $val => $text)
-            <option value="{{ $val }}" {{-- Marcamos seleccionado si coincide con el valor guardado --}} @selected((string) $text->id=== (string) $value)>
+            <option value="{{ $text->id }}" {{-- Marcamos seleccionado si coincide con el valor guardado --}} @selected((string) $text->id === (string) $value)>
                 {{ $text->nombre }}
             </option>
         @endforeach

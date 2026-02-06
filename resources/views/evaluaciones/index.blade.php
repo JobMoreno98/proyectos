@@ -10,13 +10,10 @@
                     class="py-3 flex border b-3 rounded-lg boder-stone-300 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
                     <div class="flex items-center">
                         <span class="font-medium text-gray-700">
-                           
-                            {{ isset($value->info->proyecto['titulo']) ? $value->info->proyecto['titulo'] : '' }} <br>
+                            Título: {{ isset($value->asignado['titulo']) ? $value->asignado['titulo'] : '' }}<br>
                             {{ $value->info->fecha_creado->format('d/m/Y') }}
                         </span>
                     </div>
-
-
                     <div class="flex space-x-3">
                         <div class="flex space-x-3">
 
@@ -33,7 +30,8 @@
                                 </a>
 
 
-                                {{-- Botón Eliminar
+                                {{-- 
+                                Botón Eliminar
                                     <form action="{{ route('proyectos.destroy', $value->entry_id) }}" method="POST"
                                         onsubmit="return confirm('¿Eliminar este registro?');">
                                         @csrf

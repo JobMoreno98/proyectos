@@ -46,8 +46,6 @@ class AnswerFullView extends Model
             ->whereIn('pregunta', $nombresPreguntas)
             ->pluck('respuesta', 'pregunta');
 
-
-
         return [
             'titulo'      => $respuestas['Título del Proyecto'] ?? 'N/A',
             'folio' => $respuestas['Folio'] ?? 'N/A',
@@ -111,14 +109,14 @@ class AnswerFullView extends Model
 
     public function getAsignacionAttribute()
     {
-        //dd($this);
-        $targetId = $this->entry_id;
 
+        $targetId = $this->entry_id;
+        dd($targetId);
         $nombresPreguntas = ['Proyecto'];
 
         $entry_id = AnswerFullView::where('respuesta', $targetId)
             ->whereIn('pregunta', $nombresPreguntas)
-            ->where('section_title',self::SECTION_ASIGNACIONES)
+            ->where('section_title', self::SECTION_ASIGNACIONES)
             ->value('entry_id');
 
         return $entry_id ?? null;
@@ -138,5 +136,30 @@ class AnswerFullView extends Model
     public function scopeRespuesta($query, $respuesta)
     {
         return $query->where('respuesta', $respuesta);
+    }
+
+    public function getAsignadoAttribute()
+    {
+
+        $targetId = $this->entry_id;
+
+        $nombresPreguntas = ['Proyecto'];
+
+        $entry_id = AnswerFullView::whereIn('pregunta', $nombresPreguntas)
+            ->where('section_title', self::SECTION_ASIGNACIONES)
+            ->value('respuesta');
+
+        $nombresPreguntas = ['Título del Proyecto', 'Folio'];
+
+        $respuestas = AnswerFullView::where('entry_id', $entry_id)
+            ->whereIn('pregunta', $nombresPreguntas)
+            ->pluck('respuesta', 'pregunta');
+
+        return [
+            'titulo'      => $respuestas['Título del Proyecto'] ?? 'N/A',
+            'folio' => $respuestas['Folio'] ?? 'N/A',
+        ];
+
+        // return $entry_id ?? null;
     }
 }

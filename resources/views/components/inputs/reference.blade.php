@@ -7,13 +7,12 @@
     $inputName = $name ?? "answers[{$question->id}]";
     //dd($value);
 
-    // Solo buscamos si hay una pregunta origen configurada
     if ($sourceQuestionId) {
         // Usamos el modelo Answer directamente
         $idsYaEvaluados = \App\Models\AnswerFullView::query()
             ->where('section_title', 'Asignaciones')
             ->where('respuesta', '!=', $value)
-            ->where('pregunta', 'Proyecto') // <--- OJO: Asegúrate que este sea el nombre exacto de la pregunta en la Evaluación
+            ->where('pregunta', 'Proyecto') 
             ->pluck('respuesta')
             ->filter() // Quitamos nulos o vacíos
             ->toArray();

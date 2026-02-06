@@ -24,13 +24,13 @@
                             {{ isset($value->data['titulo']) ? $value->data['titulo'] : '' }} <br>
                             {{ $value->fecha_creado->format('d/m/Y') }} <br>
                             Evaluador:
+                            
                             {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
 
                         </span>
                     </div>
                     <div class="flex space-x-3">
                         <div class="flex space-x-3">
-
                             <a href="{{ route('infor.form', $value->entry_id) }}"
                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                 <flux:icon.document variant="solid" />
