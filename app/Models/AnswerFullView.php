@@ -111,7 +111,7 @@ class AnswerFullView extends Model
     {
 
         $targetId = $this->entry_id;
-        dd($targetId);
+        //dd($targetId);
         $nombresPreguntas = ['Proyecto'];
 
         $entry_id = AnswerFullView::where('respuesta', $targetId)

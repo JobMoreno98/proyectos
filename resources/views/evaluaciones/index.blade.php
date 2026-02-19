@@ -31,7 +31,7 @@
 
 
                                 {{-- 
-                                Botón Eliminar
+                                    Botón Eliminar
                                     <form action="{{ route('proyectos.destroy', $value->entry_id) }}" method="POST"
                                         onsubmit="return confirm('¿Eliminar este registro?');">
                                         @csrf

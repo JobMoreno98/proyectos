@@ -38,6 +38,7 @@ trait ProfileValidationRules
     protected function emailRules(?int $userId = null): array
     {
         return [
+            'ends_with:@academicos.udg.mx',
             'required',
             'string',
             'email',

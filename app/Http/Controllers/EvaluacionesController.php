@@ -57,7 +57,7 @@ class EvaluacionesController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit($id)
+    public function edit($proyectoID)
     {
         $idSeccionEvaluacion = Sections::idEvaluacion();
 
@@ -65,7 +65,7 @@ class EvaluacionesController extends Controller
             $q->orderBy('sort_order'); // Asegurar orden correcto
         }])->where('id', $idSeccionEvaluacion)->orderBy('sort_order')->first();
 
-        return view('respuestas.create', compact('seccion'));
+        return view('evaluaciones.create', compact('seccion','proyectoID'));
 
         $entry = Entry::with('proyecto')->findOrFail($id);
 
