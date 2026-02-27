@@ -34,9 +34,16 @@
 
                     <input type="hidden" name="categoria_id" value="{{ $seccion->categoria_id }}">
 
-                    <h3 class="font-semibold text-gray-800">{{ $seccion->title }}</h3>
+                    <h3 class="font-semibold text-gray-800 text-center">{{ $seccion->title }}</h3>
                     @if ($seccion->description)
-                        <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
+                        <p class="text-gray-500 text-md mb-4 mt-1 flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-400" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {{ $seccion->description }}
+                        </p>
                     @endif
 
                     <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 ">
@@ -71,7 +78,7 @@
                             @endphp
 
                             @if ($question->type != 'sub_form')
-                                <x-dynamic-component  :component="$componentName" :question="$question" :value="$finalValue" />
+                                <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
                             @endif
 
                             @switch($question->type)

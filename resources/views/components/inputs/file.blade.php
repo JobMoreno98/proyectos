@@ -16,7 +16,7 @@
     }
 @endphp
 
-<x-inputs.wrapper :label="$question->label" :name="$inputName" :required="$question->is_required" :helper-text="$question->helper_text">
+<x-inputs.wrapper :label="$question->label" :name="$errorKey" :required="$question->is_required" :helper-text="$question->helper_text">
 
     <input type="file" name="{{ $inputName }}" id="{{ $errorKey }}" accept="{{ $acceptAttribute }}"
         class="block w-full text-sm text-gray-500
