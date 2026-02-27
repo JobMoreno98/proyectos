@@ -7,7 +7,7 @@
         @foreach ($categoria->secciones->where('investigacion', true) as $key => $value)
             <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
                 {{ $value->title }} <br>
-                <x-flux::button size="xs" :href="route('proyectos.show', $value->id)"> 
+                <x-flux::button size="xs" :href="route('proyectos.show', $value->id)">
                     Agregar
                     <flux:icon name="plus" variant="micro" />
                 </x-flux::button>
@@ -19,7 +19,7 @@
                         <ul class="divide-y divide-gray-100">
                             @foreach ($entries as $entry)
                                 <li
-                                    class="py-3 flex justify-between items-center hover:bg-gray-50 transition p-2 rounded">
+                                    class="py-3 flex border boder-stone-300 my-2 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
                                     <div class="flex items-center">
                                         {{-- 
                                         <span
@@ -28,7 +28,7 @@
                                         </span>
                                          --}}
                                         <span class="font-medium text-gray-700">
-                                            
+
                                             Folio
                                             :{{ isset($entry->data['folio']) ? $entry->data['folio'] : 'Error al leer el folio' }}
                                             <br>
@@ -41,12 +41,20 @@
 
 
                                     <div class="flex space-x-3">
-                                        <div class="flex space-x-3">
+                                        <div class="flex space-x-3 ">
+                                            <a href=""
+                                                class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
+                                                <flux:icon.check-circle variant="mini" />
+                                                Enviar
+                                            </a>
 
                                             <a href="{{ route('infor.form', $entry->entry_id) }}"
                                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                                 <flux:icon.printer variant="mini" />
                                             </a>
+
+
+
                                             @if ($entry->is_editable)
                                                 {{-- Botones Activos --}}
                                                 {{-- Botón Editar --}}

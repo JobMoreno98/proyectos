@@ -5,6 +5,7 @@ use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluacionesController;
 use App\Models\Answer;
+use App\Models\AnswerFullView;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,20 +40,23 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
         // 1. Si no hay código, retornamos vacío
         if (!$baseCode) return response()->json(['unique_code' => '']);
 
+
         // 2. Función recursiva para encontrar el siguiente libre
         $finalCode = $baseCode;
-        $counter = 1;
 
+        $counter = 0;
         // Buscamos si existe algun 'Answer' para ESTA pregunta con ESTE valor
         // Excluyendo nuestro propio entry_id (si estamos editando)
-        while (Answer::where('question_id', $questionId)
-            ->where('value', $finalCode)
+        do {
+            $finalCode = $counter === 0 ? $baseCode : $baseCode . '_' . $counter;
+            $counter++;
+        } while (
+            AnswerFullView::where('question_id', $questionId)
+            ->where('respuesta', $finalCode)
             ->when($entryId, fn($q) => $q->where('entry_id', '!=', $entryId))
             ->exists()
-        ) {
-            $finalCode = $baseCode . '_' . $counter;
-            $counter++;
-        }
+        );
+
 
         return response()->json(['unique_code' => $finalCode]);
     })->name('api.validate.folio');

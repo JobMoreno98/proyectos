@@ -6,8 +6,8 @@
         </p>
         <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
             @if ($porAsignar > 0)
-                <p class="flex">
-                    <flux:icon class="text-red-600" name="exclamation-circle" variant="outline" />
+                <p class="flex text-md items-center text-center">
+                    <flux:icon class="text-red-600 h-4 w-4" name="exclamation-circle" variant="outline" />
                     Aun tienes {{ $porAsignar }} proyectos sin asignar
                 </p>
 

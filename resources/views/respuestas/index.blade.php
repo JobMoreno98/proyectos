@@ -16,6 +16,11 @@
                                     class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                     <flux:icon.printer variant="mini" />
                                 </a>
+
+                                <a href="">
+                                <flux:icon.check-circle variant="mini"/>
+                                </a>
+
                                 @if ($item->is_editable)
                                     {{-- Botones Activos --}}
                                     {{-- Botón Editar --}}
