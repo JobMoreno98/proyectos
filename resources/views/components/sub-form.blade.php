@@ -49,6 +49,7 @@
         {{-- Llamamos a la lógica separada --}}
         x-data="formDependency('{{ $childParentNameString }}', @js($childExpectedStr))"
         x-show="show"
+x-collapse.duration.300ms
         x-cloak @endif
                 class="mb-3 w-full">
                 <x-dynamic-component :component="$childComponent" :question="$childQ" :value="$childValue" :name="$childInputName" />

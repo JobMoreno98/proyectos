@@ -55,6 +55,8 @@
             $expectedStr = trim($item['expectedValue']);
         @endphp
         
+x-collapse.duration.600ms
+
         {{-- Llamamos a la lógica separada --}}
         x-data="formDependency('{{ $parentNameStr }}', @js($expectedStr))"
         x-show="show"

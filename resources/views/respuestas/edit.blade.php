@@ -49,6 +49,7 @@
                         <div @if ($item['isDependent'] && $item['parentId']) x-data="dependencyComponent({{ $item['parentId'] }}, @js($item['expectedValue']))"
             x-init="init()"
             x-show="show"
+x-collapse.duration.300ms
             x-cloak @endif
                             class="
             w-full mb-4
