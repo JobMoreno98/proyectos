@@ -1,5 +1,6 @@
 @php
     $titlePage = 'Editar - ' . $seccion->title;
+    use App\Helpers\QuestionHelper;
 @endphp
 <x-layouts::app :title="$titlePage">
     <div class="container m-auto">
@@ -39,93 +40,29 @@
 
                     <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
 
-
                     @foreach ($seccion->questions as $question)
                         @php
-                            $fieldName = "answers[{$question->id}]";
-                            $errorKey = "answers.{$question->id}";
-                            $savedValue = $existingAnswers[$question->id] ?? null;
-                            $defaultValue = $question->options['default_value'] ?? '';
-                            $finalValue = old($errorKey, $savedValue ?? $defaultValue);
-
-                            $componentName = 'inputs.' . $question->type;
-                            if (!view()->exists("components.{$componentName}")) {
-                                $componentName = 'inputs.text';
-                            }
+                            $item = QuestionHelper::prepare($question, $existingAnswers);
+                            $isSubForm = $item['type'] === 'sub_form';
                         @endphp
 
-                        @php
-                            $isGeneratedCode = ($question->options['code_tag'] ?? '') === 'generated_code';
+                        <div @if ($item['isDependent'] && $item['parentId']) x-data="dependencyComponent({{ $item['parentId'] }}, @js($item['expectedValue']))"
+            x-init="init()"
+            x-show="show"
+            x-cloak @endif
+                            class="
+            w-full mb-4
+            {{ $isSubForm ? 'col-span-1 md:col-span-2' : '' }}
+        ">
 
-                            if ($isGeneratedCode) {
-                                // ¡ALTO! Es una pregunta especial. Forzamos el componente de sistema.
-                                // Asegúrate de que el archivo sea resources/views/components/inputs/system-code.blade.php
-                                $componentName = 'inputs.system-code';
-                            } else {
-                                // 2. LÓGICA ESTÁNDAR
-                                // Si no es especial, usamos su tipo de base de datos (text, select, date...)
-                                $componentName = 'inputs.' . $question->type;
-                            }
-
-                            // 3. SEGURIDAD (FALLBACK)
-                            // Si el componente (system-code o el tipo normal) no existe físicamente, usamos 'text'
-                            if (!view()->exists("components.{$componentName}")) {
-                                $componentName = 'inputs.text';
-                            }
-                        @endphp
-                        @if ($question->type != 'sub_form')
-                            <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
-                        @endif
-
-                        {{-- Sub_form --}}
-                        @if ($question->type === 'sub_form')
-                            @php
-                                $targetSectionId = $question->options['target_section_id'];
-                                $childSection = \App\Models\Sections::with('questions')->find($targetSectionId);
-
-                                // Entry del sub_form (nuevo o existente)
-                                $childEntryId = $existingAnswers[$question->id] ?? null;
-
-                                $childAnswers = [];
-                                if ($childEntryId) {
-                                    $childEntry = \App\Models\Entry::with('answers')->find($childEntryId);
-                                    $childAnswers = $childEntry->answers->pluck('value', 'question_id')->toArray();
-                                }
-                            @endphp
-
-                            @if ($childSection)
-                                <div
-                                    class="md:col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
-                                    <h4 class="md:col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
-                                        {{ $childSection->title }}
-                                    </h4>
-
-                                    @foreach ($childSection->questions as $childQ)
-                                        @php
-                                            $childInputName = "sub_answers[{$question->id}][{$childQ->id}]";
-                                            $childErrorKey = "sub_answers.{$question->id}.{$childQ->id}";
-
-                                            $childValue = old(
-                                                $childErrorKey,
-                                                $childAnswers[$childQ->id] ?? ($childQ->options['default_value'] ?? ''),
-                                            );
-
-                                            $childComponent = 'inputs.' . $childQ->type;
-                                            if (!view()->exists("components.{$childComponent}")) {
-                                                $childComponent = 'inputs.text';
-                                            }
-                                        @endphp
-
-                                        <div class="mb-3">
-                                            <x-dynamic-component :component="$childComponent" :question="$childQ" :value="$childValue"
-                                                :name="(string) $childInputName" />
-                                        </div>
-                                    @endforeach
-                                </div>
+                            @if ($isSubForm)
+                                <x-sub-form :item="$item" />
+                            @else
+                                <x-dynamic-component :component="$item['component']" :question="$item['model']" :value="$item['value']" />
                             @endif
-                        @endif
-                    @endforeach
 
+                        </div>
+                    @endforeach
 
 
                     <div class="flex justify-center mt-4 md:col-span-2">

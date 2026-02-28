@@ -1,5 +1,6 @@
 @php
     $titlePage = 'Crear - ' . $seccion->title;
+    use App\Helpers\QuestionHelper;
 @endphp
 
 <x-layouts::app :title="$titlePage">
@@ -12,7 +13,7 @@
                     {{ session('success') }}
                 </x-alert>
             @endif
-            {{-- 
+
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -23,7 +24,7 @@
                     </ul>
                 </div>
             @endif
- --}}
+
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
             <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
@@ -34,115 +35,42 @@
 
                     <input type="hidden" name="categoria_id" value="{{ $seccion->categoria_id }}">
 
-                    <h3 class="font-semibold text-gray-800 text-center">{{ $seccion->title }}</h3>
+                    <h3 class="font-semibold text-gray-800">{{ $seccion->title }}</h3>
                     @if ($seccion->description)
-                        <p class="text-gray-500 text-md mb-4 mt-1 flex items-center gap-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-400" fill="none"
-                                viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            {{ $seccion->description }}
-                        </p>
+                        <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
                     @endif
 
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 ">
+                    <div class="space-y-5 mt-4  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center ">
                         @foreach ($seccion->questions as $question)
                             @php
-                                $fieldName = "answers[{$question->id}]";
-                                $errorKey = "answers.{$question->id}";
-                                $savedValue = $existingAnswers[$question->id] ?? null;
-                                $defaultValue = $question->options['default_value'] ?? '';
-                                $finalValue = old($errorKey, $savedValue ?? $defaultValue);
+                                $item = QuestionHelper::prepare($question);
+                                $isSubForm = $item['type'] === 'sub_form';
+
+                                // Calculamos el nombre del input padre para preguntas normales
+                                $parentNameString = "answers[{$item['parentId']}]";
                             @endphp
 
-                            @php
-                                $isGeneratedCode = ($question->options['code_tag'] ?? '') === 'generated_code';
+                            <div @if ($item['isDependent'] && $item['parentId']) @php
+            $parentNameStr = "answers[{$item['parentId']}]";
+            $expectedStr = trim($item['expectedValue']);
+        @endphp
+        
+        {{-- Llamamos a la lógica separada --}}
+        x-data="formDependency('{{ $parentNameStr }}', @js($expectedStr))"
+        x-show="show"
+        x-cloak @endif
+                                class=" w-full mb-4 {{ $isSubForm ? 'col-span-1 md:col-span-2' : '' }} ">
 
-                                if ($isGeneratedCode) {
-                                    // ¡ALTO! Es una pregunta especial. Forzamos el componente de sistema.
-                                    // Asegúrate de que el archivo sea resources/views/components/inputs/system-code.blade.php
-                                    $componentName = 'inputs.system-code';
-                                } else {
-                                    // 2. LÓGICA ESTÁNDAR
-                                    // Si no es especial, usamos su tipo de base de datos (text, select, date...)
-                                    $componentName = 'inputs.' . $question->type;
-                                }
+                                @if ($isSubForm)
+                                    <x-sub-form :item="$item" />
+                                @else
+                                    <x-dynamic-component :component="$item['component']" :question="$item['model']" :value="$item['value']" />
+                                @endif
 
-                                // 3. SEGURIDAD (FALLBACK)
-                                // Si el componente (system-code o el tipo normal) no existe físicamente, usamos 'text'
-                                if (!view()->exists("components.{$componentName}")) {
-                                    $componentName = 'inputs.text';
-                                }
-
-                            @endphp
-
-                            @if ($question->type != 'sub_form')
-                                <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
-                            @endif
-
-                            @switch($question->type)
-                                @case('sub_form')
-                                    @php
-                                        // 1. Identificamos qué sección incrustar
-                                        $targetSectionId = $question->options['target_section_id'];
-
-                                        // 2. Buscamos las preguntas de esa sección (Mejor si las pasas desde el controlador para optimizar)
-                                        $childSection = \App\Models\Sections::with('questions')->find($targetSectionId);
-
-                                        // 3. Obtenemos si ya hay un Entry guardado (El valor de la respuesta es el ID del entry hijo)
-                                        $childEntryId = $existingAnswers[$question->id] ?? null;
-
-                                        // 4. Si hay entry hijo, cargamos sus respuestas
-                                        $childAnswers = [];
-                                        if ($childEntryId) {
-                                            $childEntry = \App\Models\Entry::with('answers')->find($childEntryId);
-                                            // Mapeamos [question_id => value]
-                                            $childAnswers = $childEntry->answers
-                                                ->pluck('value', 'question_id')
-                                                ->toArray();
-                                        }
-                                    @endphp
-                                    @if ($childSection)
-                                        <div
-                                            class="md:col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-2  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
-                                            <h4 class="md:col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500">
-                                                {{ $childSection->title }} </h4>
-
-                                            {{-- Iteramos las preguntas de la sección HIJA --}}
-                                            @foreach ($childSection->questions as $childQ)
-                                                @php
-                                                    // Nombre correcto del campo
-                                                    $childInputName = "sub_answers[{$question->id}][{$childQ->id}]";
-
-                                                    // Valor (old > guardado > default)
-                                                    $childValue = old(
-                                                        "sub_answers.{$question->id}.{$childQ->id}",
-                                                        $childAnswers[$childQ->id] ??
-                                                            ($childQ->options['default_value'] ?? ''),
-                                                    );
-
-                                                    // Componente correcto según el tipo del HIJO
-                                                    $childComponent = 'inputs.' . $childQ->type;
-
-                                                    // Fallback de seguridad
-                                                    if (!view()->exists("components.{$childComponent}")) {
-                                                        $childComponent = 'inputs.text';
-                                                    }
-                                                @endphp
-
-                                                <div class="mb-3">
-                                                    <x-dynamic-component :component="$childComponent" :question="$childQ" :value="$childValue"
-                                                        :name="$childInputName" />
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                @break
-                            @endswitch
+                            </div>
                         @endforeach
                     </div>
-                    <div class="flex justify-center mt-4 grid-cols-1 md:grid-cols-2">
+                    <div class="flex justify-center mt-4 col-span-2">
                         <button type="submit"
                             class="bg-blue-600 text-xs hover:bg-blue-700 text-white font-bold py-1 px-4 rounded shadow-lg transition duration-150">
                             Guardar
