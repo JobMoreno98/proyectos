@@ -26,7 +26,6 @@ class QuestionHelper
         $parentId = $question->options['depends_on_question_id'] ?? null;
         $expectedValue = $question->options['depends_on_value'] ?? null;
         
-        
         $subForm = null;
 
         if ($question->type === 'sub_form') {

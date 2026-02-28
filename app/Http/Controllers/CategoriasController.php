@@ -74,7 +74,6 @@ class CategoriasController extends Controller
                 return redirect()->route('proyectos.edit', $datos->entry_id);
             } else {
                 $seccion = $categoria->secciones->first();
-
                 if ($seccion) {
                     return redirect()->route('proyectos.show', $seccion->id);
                 }

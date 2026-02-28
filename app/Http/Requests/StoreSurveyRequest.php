@@ -28,7 +28,6 @@ class StoreSurveyRequest extends FormRequest
         $answers = $this->input('answers');
         $subAnswers = $this->input('sub_answers');
 
-
         // 1. Validaciones Estructurales (Base)
         $rules['section_ids'] = 'required|array';
         $rules['section_ids.*'] = 'exists:sections,id';
@@ -41,18 +40,32 @@ class StoreSurveyRequest extends FormRequest
 
         // 3. Reglas para preguntas NORMALES (Array 'answers')
         foreach ($questions as $question) {
+
             $isDependent = filter_var($question->options['is_dependent'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
             if ($isDependent) {
                 $parentId = $question->options['depends_on_question_id'] ?? null;
-                $expectedValue = $question->options['depends_on_value'] ?? null;
 
-                // Buscamos qué respondió el usuario en el padre
-                $actualValue = $answers[$parentId] ?? null;
+                // 1. Convertimos lo esperado a minúsculas y sin espacios
+                $expectedValue = trim(strtolower($question->options['depends_on_value'] ?? ''));
 
-                // Si la respuesta no es la esperada, la pregunta está oculta,
-                // así que ignoramos todas sus reglas de validación.
-                if ((string) $actualValue !== (string) $expectedValue) {
+                // 2. Obtenemos el valor real (puede ser un texto o un array si son checkboxes)
+                $rawActualValue = $answers[$parentId] ?? null;
+
+                $match = false;
+
+                if (is_array($rawActualValue)) {
+                    // Si es un array, buscamos si el valor esperado está dentro de las opciones seleccionadas
+                    $actualArray = array_map(fn($v) => trim(strtolower((string)$v)), $rawActualValue);
+                    $match = in_array($expectedValue, $actualArray);
+                } else {
+                    // Si es texto normal, lo pasamos a minúsculas y comparamos
+                    $actualValue = trim(strtolower((string) $rawActualValue));
+                    $match = ($actualValue === $expectedValue);
+                }
+
+                // 3. Si NO coinciden (la pregunta está oculta), saltamos la validación
+                if (!$match) {
                     continue;
                 }
             }
@@ -68,24 +81,18 @@ class StoreSurveyRequest extends FormRequest
                 $fieldRules[] = 'nullable';
             }
 
-            // B. Regla Única (Tu lógica existente se mantiene igual)
+            // B. Regla Única
             if ($question->is_unique) {
-
-                $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $question->id)->where('user_id', '!=', Auth::user()->id);
-
+                $uniqueRule = Rule::unique('answers', 'value')->where('question_id', $question->id);
                 if ($this->isMethod('put') || $this->isMethod('patch')) {
-                    $entryRouteParam = $this->route('proyecto'); // O 'entry', verifica tu ruta
-
+                    $entryRouteParam = $this->route('answer'); // O 'entry', verifica tu ruta
                     $entryIdToIgnore = ($entryRouteParam instanceof \Illuminate\Database\Eloquent\Model)
                         ? $entryRouteParam->id
                         : $entryRouteParam;
-
-
                     if ($entryIdToIgnore) {
                         $uniqueRule->whereNot('entry_id', $entryIdToIgnore);
                     }
                 }
-
                 $fieldRules[] = $uniqueRule;
             }
 
@@ -93,27 +100,14 @@ class StoreSurveyRequest extends FormRequest
             switch ($question->type) {
 
                 case 'scored_text':
-                    $fieldRules[] = 'array'; // El campo principal debe ser array
+                    $fieldRules[] = 'array';
 
-                    // Definimos si los hijos son requeridos
                     $subRequired = $question->is_required ? 'required' : 'nullable';
                     $min = $question->options['min_score'] ?? 0;
                     $max = $question->options['max_score'] ?? 10;
 
-                    // Regla para el Puntaje
-                    $rules["{$fieldKey}.score"] = [
-                        $subRequired,
-                        'numeric',
-                        'integer',
-                        "between:{$min},{$max}"
-                    ];
-
-                    // Regla para el Texto
-                    $rules["{$fieldKey}.text"] = [
-                        $subRequired,
-                        'string',
-                        'min:3' // Opcional: longitud mínima
-                    ];
+                    $rules["{$fieldKey}.score"] = [$subRequired, 'numeric', 'integer', "between:{$min},{$max}"];
+                    $rules["{$fieldKey}.text"] = [$subRequired, 'string', 'min:3'];
                     break;
                 case 'text':
                 case 'textarea':
@@ -127,16 +121,12 @@ class StoreSurveyRequest extends FormRequest
                 case 'select':
                     $choices = $question->options['choices'] ?? [];
                     if (!empty($choices)) {
-                        // MEJORA: Usamos Rule::in para evitar errores con comas
                         $fieldRules[] = Rule::in(array_column($choices, 'value'));
                     }
                     break;
                 case 'file':
-                    // Validación estricta de archivos
                     $fieldRules[] = 'file';
-                    $fieldRules[] = 'max:10240'; // 10MB
-                    // Si es PUT (edición), el archivo no es obligatorio si ya existe uno (lógica de negocio)
-                    // Pero aquí asumimos nullable en PUT para no obligar a resubir
+                    $fieldRules[] = 'max:10240';
                     $fieldRules[] = $this->isMethod('put') ? 'nullable' : ($question->is_required ? 'required' : 'nullable');
 
                     $allowedFormats = $question->options['allowed_formats'] ?? 'pdf';
@@ -153,66 +143,85 @@ class StoreSurveyRequest extends FormRequest
                     if (!empty($validOptions)) {
                         $fieldRules[] = Rule::in(array_keys($validOptions));
                     } else {
-                        // Si el catálogo no existe o está vacío, prohibimos la entrada por seguridad
                         $fieldRules[] = 'prohibited';
                     }
                     break;
                 case 'repeater_awards':
                     $fieldRules[] = 'array';
 
-                    // Reglas internas
                     $rules["{$fieldKey}.*.nombre"] = 'required|string|max:255';
 
-                    // VALIDACIÓN DINÁMICA DEL SELECT
-                    // Extraemos los valores válidos de las opciones de la pregunta
                     $validChoices = array_column($question->options['choices'] ?? [], 'value');
 
                     if (!empty($validChoices)) {
-                        // Usamos Rule::in para mayor seguridad
                         $rules["{$fieldKey}.*.tipo"] = ['required', \Illuminate\Validation\Rule::in($validChoices)];
                     } else {
-                        // Fallback por si no configuraron opciones
                         $rules["{$fieldKey}.*.tipo"] = 'required';
                     }
-
                     break;
             }
 
-            // Asignamos la regla solo si hay reglas generadas
             if (!empty($fieldRules)) {
                 $rules[$fieldKey] = $fieldRules;
             }
         }
 
         // 4. Reglas para SUB-FORMULARIOS (Array 'sub_answers')
-        // Iteramos solo las preguntas de tipo sub_form encontradas en el paso 2
-
         foreach ($questions->where('type', 'sub_form') as $parentQuestion) {
 
             $parentId = $parentQuestion->id;
 
-            // Validamos que el contenedor del padre sea un array
             $rules["sub_answers.{$parentId}"] = 'nullable|array';
 
             $targetSectionId = $parentQuestion->options['target_section_id'] ?? null;
             if (!$targetSectionId) continue;
 
-            // Cargamos la sección hija
             $childSection = \App\Models\Sections::with('questions')->find($targetSectionId);
             if (!$childSection) continue;
 
             foreach ($childSection->questions as $childQ) {
 
-                // LA CLAVE CORRECTA: sub_answers.PADRE.HIJO
+                $isParentDependent = filter_var($parentQuestion->options['is_dependent'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+                if ($isParentDependent) {
+                    $dependencyId = $parentQuestion->options['depends_on_question_id'] ?? null;
+                    $expectedVal = trim(strtolower($parentQuestion->options['depends_on_value'] ?? ''));
+                    $rawActualVal = $answers[$dependencyId] ?? null;
+
+                    $parentMatch = false;
+                    if (is_array($rawActualVal)) {
+                        $actualArray = array_map(fn($v) => trim(strtolower((string)$v)), $rawActualVal);
+                        $parentMatch = in_array($expectedVal, $actualArray);
+                    } else {
+                        $actualVal = trim(strtolower((string) $rawActualVal));
+                        $parentMatch = ($actualVal === $expectedVal);
+                    }
+
+                    // Si el padre de este sub-formulario NO cumple la condición (está oculto)...
+                    if (!$parentMatch) {
+                        // ...saltamos el sub-formulario COMPLETO. Ningún hijo será requerido.
+                        continue;
+                    }
+                }
+                // ==========================================================
+
+                $parentId = $parentQuestion->id;
+
+                // Validamos que el contenedor del padre sea un array
+                $rules["sub_answers.{$parentId}"] = 'nullable|array';
+
+                $targetSectionId = $parentQuestion->options['target_section_id'] ?? null;
+                if (!$targetSectionId) continue;
+
                 $fieldKey = "sub_answers.{$parentId}.{$childQ->id}";
                 $fieldRules = [];
+
                 // Regla base
                 if ($childQ->type !== 'file' && $childQ->type !== 'sub_form') {
                     $fieldRules[] = $childQ->is_required ? 'required' : 'nullable';
                 } else {
                     $fieldRules[] = 'nullable';
                 }
-
 
                 // Tipos
                 switch ($childQ->type) {
@@ -245,8 +254,6 @@ class StoreSurveyRequest extends FormRequest
                     case 'date':
                         $fieldRules[] = 'date';
                         break;
-                    // Importante: Laravel no maneja bien la subida de archivos en arrays anidados profundos
-                    // a veces. Verifica si tus sub-forms tienen archivos.
                     case 'file':
                         $fieldRules[] = $this->isMethod('put') ? 'nullable' : ($childQ->is_required ? 'required' : 'nullable');
                         $fieldRules[] = 'file';
@@ -257,19 +264,13 @@ class StoreSurveyRequest extends FormRequest
 
                     case 'repeater_awards':
                         $fieldRules[] = 'array';
-
-                        // Reglas internas
                         $rules["{$fieldKey}.*.nombre"] = 'required|string|max:255';
+                        // Nota: Aquí corregí $question->options por $childQ->options que era un pequeño bug en tu código
+                        $validChoices = array_column($childQ->options['choices'] ?? [], 'value');
 
-                        // VALIDACIÓN DINÁMICA DEL SELECT
-                        // Extraemos los valores válidos de las opciones de la pregunta
-                        $validChoices = array_column($question->options['choices'] ?? [], 'value');
-
-                        if (!empty($validChoices) &&  count($validChoices) > 0) {
-                            // Usamos Rule::in para mayor seguridad
+                        if (!empty($validChoices) && count($validChoices) > 0) {
                             $rules["{$fieldKey}.*.tipo"] = ['required', \Illuminate\Validation\Rule::in($validChoices)];
                         } else {
-                            // Fallback por si no configuraron opciones
                             $rules["{$fieldKey}.*.tipo"] = 'required';
                         }
 
