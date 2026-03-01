@@ -7,7 +7,7 @@
 
 @if ($section)
     <div
-        class="col-span-2 space-y-5 mt-4 border border-stone-400 rounded p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50">
+        class="col-span-2 space-y-5 mt-4  p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50">
 
         <h4 class="col-span-1 md:col-span-2 text-blue-800 font-bold mb-3 border-b-2 border-blue-500 pb-2">
             {{ $section->title }}
