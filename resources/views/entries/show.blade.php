@@ -133,10 +133,5 @@
             @endif
 
         @endforeach
-        <div class="mb-4 text-right print:hidden">
-            <button onclick="window.print()" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700">
-                Imprimir / Guardar como PDF
-            </button>
-        </div>
     </div>
 </x-layouts::app>
