@@ -20,7 +20,7 @@
     if (!is_array($data)) {
         $data = [];
     }
-    
+
     $choices = $question->options['choices'] ?? [];
 @endphp
 
@@ -53,7 +53,8 @@
                 <div class="flex-grow">
                     <label class="text-xs text-gray-500 mb-1 block">Nombre</label>
                     <input type="text" x-model="item.nombre" :name="`{{ $inputName }}[${index}][nombre]`"
-                        class="p-2 form-input w-full rounded-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500 border-gray-300"
+                        class="border border-stone-300 p-2 text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 
+        focus:ring focus:ring-blue-200 w-full"
                         placeholder="Nombre">
                 </div>
 
@@ -61,7 +62,8 @@
                     <label class="text-xs text-gray-500 mb-1 block">Tipo</label>
 
                     <select x-model="item.tipo" :name="`{{ $inputName }}[${index}][tipo]`"
-                        class="form-select text-stone-900 border-gray-300 rounded-xs shadow-md focus:border-blue-500 focus:ring focus:ring-blue-200 w-full p-2">
+                        class="form-select text-center border border-stone-300 p-2 text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 
+        focus:ring focus:ring-blue-200 w-full">
 
                         <option value="">Seleccionar...</option>
 
