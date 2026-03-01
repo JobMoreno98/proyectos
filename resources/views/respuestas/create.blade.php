@@ -26,7 +26,8 @@
             @endif
 
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
-            <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8 border border-stone-400 rounded">
+            <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data"
+                class=" rounded-lg space-y-8 border border-stone-400 rounded">
                 @csrf
                 <div class="bg-white shadow rounded-lg p-6 border-t-2 border-blue-500">
                     {{-- 1. Iteramos sobre las SECCIONES --}}
@@ -66,7 +67,9 @@ x-collapse.duration.600ms
                                 @if ($isSubForm)
                                     <x-sub-form :item="$item" />
                                 @else
-                                    <x-dynamic-component :component="$item['component']" :question="$item['model']" :value="$item['value']" />
+                                    <div class="p-2 ">
+                                        <x-dynamic-component :component="$item['component']" :question="$item['model']" :value="$item['value']" />
+                                    </div>
                                 @endif
 
                             </div>
