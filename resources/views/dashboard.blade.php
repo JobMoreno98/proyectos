@@ -1,27 +1,38 @@
-<x-layouts::app :title="__('Dashboard')" >
-    <div class="flex h-full max-w-2xl justify-center content-center flex-1 flex-col justify-items-center gap-4 rounded-xl">
-        <flux:heading size="lg">
-            Bienvenido, {{ auth()->user()->name }}
-        </flux:heading>
+<x-layouts::app :title="__('Dashboard')">
+    @if (session('success'))
+        <x-alert type="success">
+            {{ session('success') }}
+        </x-alert>
+    @endif
 
-        {{-- 🔔 NOTIFICACIÓN --}}
-        @if ($mustFillDatosGenerales)
-            <flux:callout type="warning" class=" w-full">
-                <flux:callout.heading>
-                    Atención requerida
-                </flux:callout.heading>
+    <div class="grid place-items-center min-h-[80vh] w-full px-4">
 
-                <flux:callout.text>
-                    Debes completar tus <strong>Datos generales</strong> para continuar.
-                </flux:callout.text>
+        <div class="flex w-full max-w-2xl flex-col items-center gap-6 rounded-xl text-center">
 
+            <flux:heading size="lg">
+                Bienvenido, {{ auth()->user()->name }}
+            </flux:heading>
 
-                <flux:button class="w-40" href="{{ route('seccion.show', $datosGeneralesCategoryId ?? 1) }}"
-                    variant="primary">
-                    Completar ahora
-                </flux:button>
+            @if ($mustFillDatosGenerales)
+                <flux:callout type="warning" class="w-full text-left">
+                    <flux:callout.heading>
+                        Atención requerida
+                    </flux:callout.heading>
 
-            </flux:callout>
-        @endif
+                    <flux:callout.text>
+                        Debes completar tus <strong>Datos generales</strong> para continuar.
+                    </flux:callout.text>
+
+                    <div class="mt-4">
+                        <flux:button class="w-40" href="{{ route('seccion.show', $datosGeneralesCategoryId ?? 1) }}"
+                            variant="primary">
+                            Completar ahora
+                        </flux:button>
+                    </div>
+                </flux:callout>
+            @endif
+
+        </div>
+
     </div>
 </x-layouts::app>

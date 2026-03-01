@@ -8,6 +8,7 @@ use App\Models\AnswerFullView;
 use App\Models\Ciclos;
 use App\Models\Entry;
 use App\Models\Sections;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -295,7 +296,7 @@ class AnswerController extends Controller
     public function destroy($id)
     {
         $entry = Entry::findOrFail($id);
-     
+
         if ($entry->user_id !== Auth::user()->id) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
@@ -311,5 +312,46 @@ class AnswerController extends Controller
     public function asignar(Entry $id)
     {
         return $id;
+    }
+
+    public function definitivo($id)
+    {
+        $entry = Entry::findOrFail($id);
+
+        if ($entry->user_id !== Auth::user()->id) {
+            abort(403, 'No tienes permiso para editar este registro.');
+        }
+
+        $entry->is_editable = 0;
+        $entry->update();
+        return redirect()->route('dashboard')
+            ->with('success', 'Este formulario ya se ha entregado.');
+    }
+
+    public function imprimir($id)
+    {
+        // 1. Cargamos los datos exactamente igual que en tu vista web
+        $entry = Entry::with('answers')->findOrFail($id);
+
+        if ($entry->user_id !== Auth::user()->id) {
+            abort(403, 'No tienes permiso para editar este registro.');
+        }
+        $idSecion = ($entry->answers->first()->question->section_id);
+
+        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+            $q->orderBy('sort_order'); // Asegurar orden correcto
+        }])->where('id', $idSecion)->orderBy('sort_order')->first();
+
+        $answersMap = $entry->answers->keyBy('question_id');
+
+        // 2. Generamos el PDF apuntando a una vista nueva y exclusiva para impresión
+        $pdf = Pdf::loadView('entries.pdf', [
+            'entry' => $entry,
+            'seccion' => $seccion,
+            'answersMap' => $answersMap,
+        ]);
+
+        // 3. Devolvemos el archivo para que el navegador lo descargue
+        return $pdf->stream('formulario_' . $entry->id . '.pdf');
     }
 }

@@ -3,7 +3,8 @@
         <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white  shadow-xl sm:rounded-lg p-3">
                 @foreach ($proyectos as $item)
-                    <div class="max-w-6xl m-3 p-2 flex justify-between items-center border border-stone-400 rounded-lg mb-2">
+                    <div
+                        class="max-w-6xl m-3 p-2 flex justify-between items-center border border-stone-400 rounded-lg mb-2">
                         <div>
                             {{ $item->respuesta }} <br>
                             {{ $item->titulo->respuesta }} <br>
@@ -18,12 +19,10 @@
                                 </a>
 
                                 <a href="">
-                                <flux:icon.check-circle variant="mini"/>
+                                    <flux:icon.check-circle variant="mini" />
                                 </a>
 
                                 @if ($item->is_editable)
-                                    {{-- Botones Activos --}}
-                                    {{-- Botón Editar --}}
                                     <a href="{{ route('proyectos.edit', $item->entry_id) }}"
                                         class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                         <flux:icon.pencil variant="mini" />

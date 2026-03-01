@@ -21,8 +21,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('proyectos.update', $entry->id) }}" method="POST" enctype="multipart/form-data border border-stone-400 rounded"
-                class="bg-white shadow-lg rounded-lg p-6 border-t-2 border-blue-500">
+            <form action="{{ route('proyectos.update', $entry->id) }}" method="POST" enctype="multipart/form-data"
+                class="bg-white shadow-lg rounded-lg p-6 border-t-2 border-blue-500  border border-stone-400 rounded">
                 @csrf
                 @method('PUT')
                 <h3 class="font-semibold text-gray-800 text-center">{{ $seccion->title }}</h3>

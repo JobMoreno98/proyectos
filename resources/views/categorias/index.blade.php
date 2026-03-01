@@ -34,28 +34,35 @@
                                             <br>
                                             Título:
                                             {{ isset($entry->data['titulo']) ? $entry->data['titulo'] : 'Error al leer el titulo' }}
-                                            <br>
-                                            Fecha: {{ $entry->fecha_creado->format('d/m/Y') }}
+                                            <br> Fecha: {{ $entry->fecha_creado->format('d/m/Y') }}
                                         </span>
                                     </div>
 
 
                                     <div class="flex space-x-3">
                                         <div class="flex space-x-3 ">
-                                            <a href=""
-                                                class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
-                                                <flux:icon.check-circle variant="mini" />
-                                                Enviar
-                                            </a>
+
 
                                             <a href="{{ route('infor.form', $entry->entry_id) }}"
+                                                class="text-black-600 hover:text-indigo-900 text-sm font-medium">
+                                                <flux:icon.information-circle variant="mini" />
+                                            </a>
+
+                                            <a target="_blank" href="{{ route('proyectos.print', $entry->entry_id) }}"
                                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                                 <flux:icon.printer variant="mini" />
                                             </a>
 
 
 
+
+
                                             @if ($entry->is_editable)
+                                                <a href="{{ route('proyectos.send', $entry->entry_id) }}"
+                                                    class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
+                                                    <flux:icon.check-circle variant="mini" />
+                                                    Enviar
+                                                </a>
                                                 {{-- Botones Activos --}}
                                                 {{-- Botón Editar --}}
                                                 <a href="{{ route('proyectos.edit', $entry->entry_id) }}"

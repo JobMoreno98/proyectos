@@ -85,7 +85,7 @@ document.addEventListener("alpine:init", () => {
                 // Asignamos el código final (único)
                 this.code = data.unique_code;
             } catch (error) {
-                console.error("Error generando folio:", error);
+                //console.error("Error generando folio:", error);
                 // Fallback: Usamos el base si falla la API
                 this.code = baseCode;
             } finally {

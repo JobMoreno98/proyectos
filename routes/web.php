@@ -31,6 +31,10 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::get('/proyectos/{id}', [AnswerController::class, 'create'])->name('proyectos.create');
 
+    Route::get('/definitivo/{id}', [AnswerController::class, 'definitivo'])->name('proyectos.send');
+
+    Route::get('/imprimir/{id}', [AnswerController::class, 'imprimir'])->name('proyectos.print');
+
     Route::get('/api/validate-folio', function (Request $request) {
 
         $questionId = $request->input('question_id');

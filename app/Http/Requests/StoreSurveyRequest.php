@@ -258,8 +258,9 @@ class StoreSurveyRequest extends FormRequest
                         $fieldRules[] = $this->isMethod('put') ? 'nullable' : ($childQ->is_required ? 'required' : 'nullable');
                         $fieldRules[] = 'file';
                         $fieldRules[] = 'max:10240';
-                        $formats = $childQ->options['allowed_formats'] ?? 'pdf';
-                        $fieldRules[] = 'mimes:' . str_replace(' ', '', $formats);
+                        $allowedFormats = $childQ->options['allowed_formats'] ?? 'pdf';
+
+                        $fieldRules[] = 'mimes:' . str_replace(' ', '', $allowedFormats);
                         break;
 
                     case 'repeater_awards':
