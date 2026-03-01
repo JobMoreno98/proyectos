@@ -325,7 +325,7 @@ class AnswerController extends Controller
         $entry->is_editable = 0;
         $entry->update();
         return redirect()->route('dashboard')
-            ->with('success', 'Este formulario ya se ha entregado.');
+            ->with('success', 'Este formulario se ha entregado de forma exitosa.');
     }
 
     public function imprimir($id)
@@ -334,7 +334,7 @@ class AnswerController extends Controller
         $entry = Entry::with('answers')->findOrFail($id);
 
         if ($entry->user_id !== Auth::user()->id) {
-            abort(403, 'No tienes permiso para editar este registro.');
+            abort(403, 'No tienes permiso para imprimir este registro.');
         }
         $idSecion = ($entry->answers->first()->question->section_id);
 
