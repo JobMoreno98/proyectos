@@ -57,7 +57,7 @@
             @enderror
         </div>
 
-        {{-- COLUMNA 2: JUSTIFICACIÓN (REUTILIZAMOS TU COMPONENTE) --}}
+        
         <div class="flex-grow w-full md:w-50">
             <x-inputs.textarea :question="$subQuestion" :value="$currentText" :name="$nameText" />
         </div>

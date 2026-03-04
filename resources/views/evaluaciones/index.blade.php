@@ -19,18 +19,35 @@
 
                             <a href="{{ route('infor.form', $value->info->respuesta) }}"
                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
-                                <flux:icon.document variant="solid" />
+                                <flux:icon.information-circle variant="mini" />
                             </a>
-                            @if ($value->is_editable)
-                                {{-- Botones Activos --}}
-                                {{-- Botón Editar --}}
-                                <a href="{{ route('evaluacion.edit', $value->info->respuesta) }}"
-                                    class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                                    <flux:icon.pencil variant="solid" />
+
+                            @if (isset($value->evaluacion))
+                                <a target="_blank" href="{{ route('proyectos.print', $value->evaluacion->entry_id) }}"
+                                    class="text-black-600 hover:text-indigo-900 text-sm font-medium">
+                                    <flux:icon.printer variant="mini" />
                                 </a>
+                                @if ($value->evaluacion->is_editable)
+                                    <a href="{{ route('proyectos.send', $value->evaluacion->entry_id) }}"
+                                        class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
+                                        <flux:icon.check-circle variant="mini" />
+                                        Enviar
+                                    </a>
+                                    <a href="{{ route('evaluacion.edit', $value->evaluacion->entry_id) }}"
+                                        class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                        <flux:icon.pencil variant="mini" />
+                                    </a>
+                                @endif
+                            @else
+                                <a href="{{ route('evaluacion.create', $value->info->respuesta) }}"
+                                    class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                    <flux:icon.pencil variant="mini" />
+                                </a>
+                            @endif
 
 
-                                {{-- 
+
+                            {{-- 
                                     Botón Eliminar
                                     <form action="{{ route('proyectos.destroy', $value->entry_id) }}" method="POST"
                                         onsubmit="return confirm('¿Eliminar este registro?');">
@@ -42,14 +59,14 @@
                                         </button>
                                     </form>
                                      --}}
-                            @endif
+
                         </div>
                     </div>
                 </li>
 
             @empty
                 <p class="text-gray-400 italic text-sm text-center py-4">
-                    No has registrado información en esta sección aún.
+                    No se ha registrado información en esta sección aún.
                 </p>
             @endforelse
         </div>

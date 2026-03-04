@@ -8,7 +8,7 @@
 @switch($type)
     @case('scored_text')
         <strong>Puntuación:</strong> {{ $value['score'] ?? 0 }} / 10 <br>
-        <strong>Justificación:</strong> {{ $value['text'] ?? '' }}
+        <strong>Justificación:</strong> {!! $value['text'] ?? '' !!}
     @break
 
     @case('textarea')

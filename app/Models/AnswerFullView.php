@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-
+use Illuminate\Support\Facades\Auth;
 
 class AnswerFullView extends Model
 {
@@ -161,5 +161,20 @@ class AnswerFullView extends Model
         ];
 
         // return $entry_id ?? null;
+    }
+
+    public function getEvaluacionAttribute()
+    {
+
+        $nombresPreguntas = ['Proyecto'];
+
+        $proyecto_id = AnswerFullView::whereIn('pregunta', $nombresPreguntas)
+            ->where('section_title', self::SECTION_ASIGNACIONES)
+            ->value('respuesta');
+
+
+        $entry = AnswerFullView::select('entry_id', 'is_editable')->where('pregunta', 'Proyecto')->where('respuesta', $proyecto_id)->where('user_id', Auth::user()->id)->first();
+
+        return $entry ?? null;
     }
 }

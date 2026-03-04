@@ -39,7 +39,7 @@
             {{-- Texto Justificación --}}
             <div class="flex-grow bg-gray-50 rounded p-3 text-gray-700 border border-gray-200">
                 <span class="block text-xs font-bold text-gray-400 uppercase mb-1">Justificación:</span>
-                "{!! $value['text'] ?? '' !!}"
+                {!! $value['text'] ?? '' !!}
             </div>
         </div>
     @break

@@ -20,19 +20,35 @@
                 </div>
             @endif
 
-            <form action="{{ route('proyectos.update', $entry->id) }}" method="POST" enctype="multipart/form-data" class="bg-white shadow-lg rounded-lg p-6 border-t-2 border-blue-500">
+            <form action="{{ route('evaluacion.update', $entry->id) }}" method="POST" enctype="multipart/form-data"
+                class="bg-white shadow-lg rounded-lg p-6 border-t-2 border-blue-500">
                 @csrf
                 @method('PUT')
+                <h3 class="font-semibold text-gray-800 text-center">{{ $seccion->title }}</h3>
+                @if ($seccion->description)
+                    <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
+                @endif
                 <div class="space-y-5 mt-4  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
 
                     <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
 
                     @foreach ($seccion->questions as $question)
+
                         @php
                             $fieldName = "answers[{$question->id}]";
                             $errorKey = "answers.{$question->id}";
                             $savedValue = $existingAnswers[$question->id] ?? null;
+
                             $defaultValue = $question->options['default_value'] ?? '';
+
+                            $esPreguntaProyecto = strtolower(trim($question->label)) === 'proyecto';
+
+                            if ($esPreguntaProyecto) {
+                                // Si $proyectoID viene del controlador (Crear), lo usa.
+                                // Si no viene (Editar), le asigna null sin lanzar error.
+                                $defaultValue = $proyectoID ?? null;
+                            }
+
                             $finalValue = old($errorKey, $savedValue ?? $defaultValue);
 
                             $componentName = 'inputs.' . $question->type;
@@ -60,7 +76,13 @@
                                 $componentName = 'inputs.text';
                             }
                         @endphp
-                        @if ($question->type != 'sub_form')
+
+                        {{-- 2. DECISIÓN DE DIBUJO: Oculto vs Visible --}}
+                        @if ($esPreguntaProyecto)
+                            {{-- Si es el proyecto, creamos un input oculto puro. No se verá nada en pantalla. --}}
+                            <input type="hidden" name="{{ $fieldName }}" value="{{ $finalValue }}">
+                        @elseif ($question->type != 'sub_form')
+                            {{-- Si es cualquier otra pregunta normal, dibujamos tu componente dinámico --}}
                             <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
                         @endif
 

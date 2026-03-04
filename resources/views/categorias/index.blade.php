@@ -54,9 +54,6 @@
                                             </a>
 
 
-
-
-
                                             @if ($entry->is_editable)
                                                 <a href="{{ route('proyectos.send', $entry->entry_id) }}"
                                                     class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
@@ -90,7 +87,7 @@
                         </ul>
                     @else
                         <p class="text-gray-400 italic text-sm text-center py-4">
-                            No has registrado información en esta sección aún.
+                            No se ha registrado información en esta sección aún.
                         </p>
                     @endif
                 </div>

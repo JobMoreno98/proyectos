@@ -12,7 +12,7 @@
                     {{ session('success') }}
                 </x-alert>
             @endif
-            {{-- 
+            
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -23,14 +23,13 @@
                     </ul>
                 </div>
             @endif
- --}}
+ 
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
             <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 <div class="bg-white shadow rounded-lg p-6 border-t-2 border-blue-500">
-                    {{-- 1. Iteramos sobre las SECCIONES --}}
 
-                    <input type="text" name="section_ids[]" value="{{ $seccion->id }}">
+                    <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
 
                     <input type="hidden" name="categoria_id" value="{{ $seccion->categoria_id }}">
 
@@ -48,6 +47,13 @@
                                 $errorKey = "answers.{$question->id}";
                                 $savedValue = $existingAnswers[$question->id] ?? null;
                                 $defaultValue = $question->options['default_value'] ?? '';
+                                // 1. Identificamos si esta es la pregunta que queremos ocultar y pre-llenar
+                                $esPreguntaProyecto = strtolower(trim($question->label)) === 'proyecto';
+
+                                if ($esPreguntaProyecto) {
+                                    $defaultValue = $proyectoID;
+                                }
+
                                 $finalValue = old($errorKey, $savedValue ?? $defaultValue);
                             @endphp
 
@@ -63,16 +69,18 @@
                                     // Si no es especial, usamos su tipo de base de datos (text, select, date...)
                                     $componentName = 'inputs.' . $question->type;
                                 }
-
-                                // 3. SEGURIDAD (FALLBACK)
-                                // Si el componente (system-code o el tipo normal) no existe físicamente, usamos 'text'
                                 if (!view()->exists("components.{$componentName}")) {
                                     $componentName = 'inputs.text';
                                 }
 
                             @endphp
 
-                            @if ($question->type != 'sub_form')
+                            {{-- 2. DECISIÓN DE DIBUJO: Oculto vs Visible --}}
+                            @if ($esPreguntaProyecto)
+                                {{-- Si es el proyecto, creamos un input oculto puro. No se verá nada en pantalla. --}}
+                                <input type="hidden" name="{{ $fieldName }}" value="{{ $finalValue }}">
+                            @elseif ($question->type != 'sub_form')
+                                {{-- Si es cualquier otra pregunta normal, dibujamos tu componente dinámico --}}
                                 <x-dynamic-component :component="$componentName" :question="$question" :value="$finalValue" />
                             @endif
 

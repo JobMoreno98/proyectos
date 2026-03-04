@@ -63,6 +63,7 @@ class CategoriasController extends Controller
 
             return view('asignaciones.index', compact('datos', 'categoria', 'porAsignar'));
         }
+        
         if ($categoria->titulo == 'Datos Generales') {
 
             $datos = AnswerFullView::select('entry_id')
@@ -79,20 +80,6 @@ class CategoriasController extends Controller
                 }
             }
         }
-        if ($categoria->titulo == 'Evaluaciones' && Auth::user()->hasRole('admin')) {
-            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
-            $query = AnswerFullView::where('ciclo_id', $ciclo->id)
-                ->groupBy('entry_id')
-                ->orderBy('fecha_creado');
-
-            $datos = (clone $query)->where('section_title', 'Evaluaciones')->get();
-
-            $asignados = (clone $query)->where('section_title', 'Evaluaciones')->distinct('entry_id')->get()->count();
-
-            $porAsignar = $datos->count() - $asignados;
-
-            return view('asignaciones.index', compact('datos', 'categoria', 'porAsignar'));
-        }
         
         if ($categoria->titulo == 'Evaluaciones') {
             
@@ -101,8 +88,6 @@ class CategoriasController extends Controller
             $datos = AnswerFullView::where('ciclo_id', $ciclo->id)->where('section_title', 'Asignaciones')->where('respuesta', Auth::user()->id)
                 ->groupBy('entry_id')
                 ->orderBy('fecha_creado')->get();
-
-          //dd($datos);
 
             return view('evaluaciones.index', compact('datos', 'categoria'));
         }

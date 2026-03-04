@@ -142,7 +142,7 @@ class AnswerController extends Controller
         //dd($entry, Auth::user()->id);
 
         // 2. Seguridad: Verificar que el entry pertenece al usuario logueado+
-        if (($entry->user_id !== Auth::user()->id)) {
+        if ((($entry->user_id !== Auth::user()->id) && (Auth::user()->hasRole('admin')) )) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
 
@@ -206,7 +206,7 @@ class AnswerController extends Controller
                             continue;
                         }
                     }
-
+                    
                     Answer::updateOrCreate(
                         ['entry_id' => $entry->id, 'question_id' => $questionId],
                         ['value' => $value]

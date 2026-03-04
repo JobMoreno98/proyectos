@@ -278,11 +278,31 @@
                 <div class="question-box">
                     <div class="question-label">{{ $question->label }}</div>
                     <div class="question-value">
-                        @include('pdf.partials.render-value', [
-                            'type' => $question->type,
-                            'value' => $val,
-                            'options' => $question->options,
-                        ])
+                        @php
+                            $esPreguntaProyecto = strtolower(trim($question->label)) === 'proyecto';
+                        @endphp
+
+                        @if ($esPreguntaProyecto && $val)
+                            @php
+                                // IMPORTANTE: Cambia '\App\Models\Proyecto' por el nombre real de tu modelo
+                                // y 'nombre' por el nombre de la columna donde guardas el título.
+                                $proyectoDB = \App\Models\AnswerFullView::select('respuesta')
+                                    ->where('entry_id', $val)
+                                    ->where('pregunta','Título del Proyecto')
+                                    ->value('respuesta');
+                                $tituloProyecto = $proyectoDB
+                                    ? $proyectoDB
+                                    : "Proyecto no encontrado (ID: $val)";
+                            @endphp
+
+                            {{ $tituloProyecto }}
+                        @else
+                            @include('pdf.partials.render-value', [
+                                'type' => $question->type,
+                                'value' => $val,
+                                'options' => $question->options,
+                            ])
+                        @endif
                     </div>
                 </div>
             @endif
