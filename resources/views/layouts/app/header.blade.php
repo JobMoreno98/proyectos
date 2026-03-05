@@ -6,28 +6,34 @@
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+
+    <link rel="stylesheet" href="{{ asset('css/loader.css') }}">
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <!-- From Uiverse.io by JkHuger -->
     <div id="page-loader"
-        style="position:fixed;inset:0;z-index:9999;background:white;display:none;flex-direction:column;align-items:center;justify-content:center;">
+        style="position:fixed;inset:0;z-index:9999;background:#f8fafc;;display:none;flex-direction:column;align-items:center;justify-content:center;">
+
+        <svg class="pl" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
 
         <div
-            style="width:50px;height:50px;border:6px solid #c7d2fe;border-top:6px solid #4f46e5;border-radius:50%;animation:spin 1s linear infinite;">
-        </div>
-
-        <div style="margin-top:16px;color:#4f46e5;font-weight:600;font-family:sans-serif;font-size:16px;">
+            style="margin-top:24px;color:#255ff4;font-weight:600;font-family:sans-serif;font-size:18px;letter-spacing:1px;">
             Cargando...
         </div>
 
     </div>
-    <style>
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-    </style>
+
+
 
     <flux:header class="print:hidden border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
@@ -67,41 +73,44 @@
     </flux:sidebar>
 
     {{ $slot }}
+    @fluxScripts
+    <script src="{{ asset('js/validateForm.js') }}"></script>
     <script>
-        function initPageLoader() {
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.loaderInitialized) return;
+            window.loaderInitialized = true;
 
-            const loader = document.getElementById('page-loader');
+            const showLoader = () => {
+                const loader = document.getElementById('page-loader');
+                if (loader) loader.style.display = 'flex';
+            };
 
-            if (!loader) return;
+            const hideLoader = () => {
+                const loader = document.getElementById('page-loader');
+                if (loader) loader.style.display = 'none';
+            };
 
-            function show() {
-                loader.style.display = 'flex';
-            }
+            window.testLoader = showLoader;
+            window.hideLoader = hideLoader;
 
-            function hide() {
-                loader.style.display = 'none';
-            }
+            document.addEventListener('livewire:navigate', showLoader);
+            document.addEventListener('livewire:navigated', hideLoader);
 
-            window.testLoader = show;
-            window.hideLoader = hide;
-
-            document.addEventListener('livewire:navigate', show);
-            document.addEventListener('livewire:navigated', hide);
             document.addEventListener('livewire:init', () => {
                 Livewire.hook('request', ({
                     respond
                 }) => {
-                    show();
-                    respond(() => hide());
+                    showLoader();
+                    respond(() => hideLoader());
                 });
             });
-            window.addEventListener('beforeunload', show);
-        }
-        document.addEventListener('livewire:navigated', initPageLoader);
-        document.addEventListener('DOMContentLoaded', initPageLoader);
+
+            window.addEventListener('beforeunload', showLoader);
+            window.addEventListener('pageshow', () => hideLoader());
+            window.addEventListener('popstate', () => hideLoader());
+        });
     </script>
-    <script src="{{ asset('js/validateForm.js') }}"></script>
-    @fluxScripts
+
     <script src="{{ asset('js/questionDependent.js') }}"></script>
     <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
     @stack('js')
