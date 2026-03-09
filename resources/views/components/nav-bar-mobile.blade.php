@@ -13,3 +13,9 @@
         @endif
     @endcan
 @endforeach
+@if (auth()->user()->hasRole('admin'))
+    <flux:sidebar.item icon="home" :href="route('seccion.show',$link->id)"
+        :current="request()->route('categoria') === $link->id" wire:navigate>
+        {{ $link->titulo }}
+    </flux:sidebar.item>
+@endif

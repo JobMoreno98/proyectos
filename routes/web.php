@@ -4,6 +4,7 @@ use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluacionesController;
+use App\Http\Controllers\UserController;
 use App\Models\Answer;
 use App\Models\AnswerFullView;
 use Illuminate\Http\Request;
@@ -64,6 +65,8 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
         return response()->json(['unique_code' => $finalCode]);
     })->name('api.validate.folio');
+
+    Route::resource('usuarios', UserController::class)->middleware('admin');
 });
 
 require __DIR__ . '/settings.php';

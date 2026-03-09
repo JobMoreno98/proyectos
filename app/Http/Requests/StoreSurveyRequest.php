@@ -83,9 +83,10 @@ class StoreSurveyRequest extends FormRequest
 
             // B. Regla Única
             if ($question->is_unique) {
-                $uniqueRule = Rule::unique('answers', 'value')->where('question_id', $question->id);
+                $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $question->id);
                 if ($this->isMethod('put') || $this->isMethod('patch')) {
-                    $entryRouteParam = $this->route('answer'); // O 'entry', verifica tu ruta
+                    
+                    $entryRouteParam = $this->route('proyecto'); // O 'entry', verifica tu ruta
                     $entryIdToIgnore = ($entryRouteParam instanceof \Illuminate\Database\Eloquent\Model)
                         ? $entryRouteParam->id
                         : $entryRouteParam;
