@@ -1,16 +1,16 @@
 @php
     $profileUpdated = auth()->user()->hasUpdatedProfileThisYear();
-   
-@endphp
 
+@endphp
 
 @foreach ($enlaces as $link)
     @can('view', $link)
         @if ($profileUpdated || $link->isDatosGenerales())
-            <flux:navbar.item icon="home" :href="route('seccion.show',$link->id)"
-                :current="request()->route('categoria') === $link->id" >
+            <flux:sidebar.item icon="home" :href="route('seccion.show', $link->id)"
+                :current="request()->routeIs('seccion.show') && (request()->route('categoria')->id == $link->id )"
+                wire:navigate>
                 {{ $link->titulo }}
-            </flux:navbar.item>
+            </flux:sidebar.item>
         @endif
     @endcan
 @endforeach

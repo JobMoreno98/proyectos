@@ -8,10 +8,11 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
 
     <link rel="stylesheet" href="{{ asset('css/loader.css') }}">
+    @stack('styles')
+
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
-    <!-- From Uiverse.io by JkHuger -->
     <div id="page-loader"
         style="position:fixed;inset:0;z-index:9999;background:#f8fafc;;display:none;flex-direction:column;align-items:center;justify-content:center;">
 

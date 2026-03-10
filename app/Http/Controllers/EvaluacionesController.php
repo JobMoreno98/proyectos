@@ -14,22 +14,11 @@ use Illuminate\Support\Facades\DB;
 
 class EvaluacionesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $idSeccionEvaluacion = Sections::idEvaluacion();
 
-        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+        $seccion = Sections::with(['questions' => function ($q) {
             $q->orderBy('sort_order'); // Asegurar orden correcto
         }])->where('id', $idSeccionEvaluacion)->orderBy('sort_order')->first();
 
@@ -49,24 +38,13 @@ class EvaluacionesController extends Controller
         $seccion = Sections::with('questions')->where('id', $idSeccionEvaluacion)->first();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
 
         $entry = Entry::with(['user', 'answers'])->findOrFail($id);
         $idSecion = ($entry->answers->first()->question->section_id);
 
-        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+        $seccion = Sections::with(['questions' => function ($q) {
             $q->orderBy('sort_order'); // Asegurar orden correcto
         }])->where('id', $idSecion)->orderBy('sort_order')->first();
 
@@ -231,13 +209,5 @@ class EvaluacionesController extends Controller
         });
 
         return redirect()->route('evaluacion.edit', $id)->with('success', 'Actualizado correctamente.');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

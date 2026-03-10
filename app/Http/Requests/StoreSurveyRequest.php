@@ -85,7 +85,7 @@ class StoreSurveyRequest extends FormRequest
             if ($question->is_unique) {
                 $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $question->id);
                 if ($this->isMethod('put') || $this->isMethod('patch')) {
-                    
+
                     $entryRouteParam = $this->route('proyecto'); // O 'entry', verifica tu ruta
                     $entryIdToIgnore = ($entryRouteParam instanceof \Illuminate\Database\Eloquent\Model)
                         ? $entryRouteParam->id
@@ -181,6 +181,36 @@ class StoreSurveyRequest extends FormRequest
             if (!$childSection) continue;
 
             foreach ($childSection->questions as $childQ) {
+
+                if ($childQ->is_unique) {
+                    $uniqueRule = Rule::unique('answers_view', 'respuesta')->where('question_id', $childQ->id);
+
+                    if ($this->isMethod('put') || $this->isMethod('patch')) {
+                        // 1. Obtenemos el ID del proyecto padre desde la ruta
+                        $parentEntryParam = $this->route('proyecto');
+                        $parentEntryId = ($parentEntryParam instanceof \Illuminate\Database\Eloquent\Model)
+                            ? $parentEntryParam->id
+                            : $parentEntryParam;
+
+                        if ($parentEntryId) {
+                            // 2. Buscamos el ID del entry HIJO en la base de datos
+                            // Buscamos la respuesta del proyecto padre a la pregunta $question (el sub_form)
+                            $childEntryId = \Illuminate\Support\Facades\DB::table('answers') // O la tabla donde guardes la relación
+                                ->where('entry_id', $parentEntryId)
+                                ->where('question_id', $question->id) // $question es la variable del ciclo exterior
+                                ->value('value');
+
+                            // 3. Si encontramos el ID del hijo, ese es el que debemos ignorar
+                            if ($childEntryId) {
+                                $uniqueRule->where('entry_id', '!=', $childEntryId);
+                            }
+                        }
+                    }
+
+                    // Asignamos la regla al campo correspondiente
+                    $fieldRules[] = $uniqueRule;
+                }
+
 
                 $isParentDependent = filter_var($parentQuestion->options['is_dependent'] ?? false, FILTER_VALIDATE_BOOLEAN);
 

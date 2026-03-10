@@ -17,7 +17,7 @@ class isAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if (!Auth::user()->hasRole('admin')) {
-            abort('404', 'No tienes acceso');
+            abort('401');
         }
         return $next($request);
     }

@@ -25,11 +25,11 @@ class Navbar extends Component
         $categorias = Categorias::whereJsonContains('sistema', 'investigacion')->orderBy('titulo')->get()->map(function ($categoria) {
             if ($categoria->titulo === 'Generación y Aplicación del Conocimiento') {
                 $categoria->titulo = 'Proyectos de investigación';
+            } elseif ($categoria->titulo === 'ViewDatosGenerales') {
+                $categoria->titulo = 'Usuarios';
             }
             return $categoria;
         });
-
-
         return view('components.navbar', ['enlaces' => $categorias]);
     }
 }
