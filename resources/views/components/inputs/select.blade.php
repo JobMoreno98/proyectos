@@ -9,6 +9,23 @@
 
     $codeTag = $question->options['code_tag'] ?? null;
 @endphp
+@push('styles')
+    <style>
+        select option {
+            white-space: normal;
+            /* Permite saltos de línea */
+            word-wrap: break-word;
+            /* Rompe palabras largas */
+            overflow-wrap: break-word;
+        }
+
+        .ts-dropdown .option {
+            white-space: normal;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+    </style>
+@endpush
 
 <x-inputs.wrapper :label="$question->label" :name="$errorKey" :required="$question->is_required" :helper-text="$question->helper_text">
 
@@ -17,7 +34,7 @@
             @if ($codeTag) data-code-tag="{{ $codeTag }}" @endif
             onchange="window.dispatchEvent(new CustomEvent('recalculate-code'))"
             @if ($enableSearch) placeholder="Buscar..." @endif
-            class="form-select text-center border border-stone-300 p-2 text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 
+            class="form-select whitespace-normal break-words text-center border border-stone-300 p-2 text-stone-900 border-gray-300 rounded-md shadow-sm focus:border-blue-500 
         focus:ring focus:ring-blue-200 w-full">
             <option value="">Seleccione...</option>
 

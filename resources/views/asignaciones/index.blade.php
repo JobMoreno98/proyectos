@@ -1,4 +1,11 @@
 <x-layouts::app :title="$categoria->titulo">
+    @push('styles')
+        <link href="https://cdn.datatables.net/2.0.2/css/dataTables.tailwindcss.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/buttons/3.0.1/css/buttons.tailwindcss.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/searchpanes/2.3.0/css/searchPanes.tailwindcss.css" rel="stylesheet">
+        <link href="https://cdn.datatables.net/select/2.0.0/css/select.tailwindcss.css" rel="stylesheet">
+        <link rel="stylesheet" href="{{ asset('css/style.css') }}">
+    @endpush
     <div class="container m-auto">
         <h2 class="text-center text-stone-900"> {{ $categoria->titulo }}</h2>
         <p class="text-center text-stone-900">
@@ -15,59 +22,119 @@
                     <flux:icon name="plus" variant="micro" />
                 </x-flux::button>
             @endif
+            <table id="proyectos" style="width: 100%">
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th style="max-width: 15%;    overflow-wrap: break-word;">Título</th>
+                        <th>Evaluador</th>
+                        <th>Evaluacion</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
 
-            @forelse ($datos as $key => $value)
-                <li
-                    class="py-3 flex border my-1 b-3 rounded-lg boder-stone-300 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
-                    <div class="flex items-center">
-                        <span class="font-medium text-gray-700">
-                            {{ isset($value->data['titulo']) ? 'Título ' . $value->data['titulo'] : '' }} <br>
-                            {{ isset($value->data['folio']) ? 'Folio ' . $value->data['folio'] : '' }} <br>
-                            {{ $value->fecha_creado->format('d/m/Y') }} <br>
-                            Evaluador:
-                            {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
-                        </span>
-                    </div>
-                    <div class="flex space-x-3">
-                        <div class="flex space-x-3">
-                            <a href="{{ route('infor.form', $value->entry_id) }}"
-                                class="text-black-600 hover:text-indigo-900 text-sm font-medium">
-                                <flux:icon.document variant="solid" />
-                            </a>
+                    @foreach ($datos as $key => $value)
+                        <tr>
+                            <td> {{ isset($value->data['folio']) ? $value->data['folio'] : '' }} </td>
+                            <td style="max-width: 15%;    overflow-wrap: break-word;">
+                                {{ isset($value->data['titulo']) ? $value->data['titulo'] : '' }}
+                            </td>
+                            <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
+                            </td>
+                            <td>
+                                <div class="flex space-x-3">
+                                    <a href="{{ route('infor.form', $value->entry_id) }}"
+                                        class="text-black-600 hover:text-indigo-900 text-sm font-medium">
+                                        <flux:icon.document variant="solid" />
+                                    </a>
 
-                            {{-- Botones Activos --}}
-                            {{-- Botón Editar --}}
-                            @if ($value->asignacion)
-                                <a href="{{ route('proyectos.edit', $value->asignacion) }}"
-                                    class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                                    <flux:icon.arrow-turn-right-up variant="solid" />
-                                </a>
+                                    {{-- Botones Activos --}}
+                                    {{-- Botón Editar --}}
+                                    @if ($value->asignacion)
+                                        <a href="{{ route('proyectos.edit', $value->asignacion) }}"
+                                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <flux:icon.arrow-turn-right-up variant="solid" />
+                                        </a>
 
 
-                                <a href="{{ route('proyectos.edit', $value->asignacion) }}"
-                                    class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                                    <flux:icon.user-plus variant="solid" />
-                                </a>
+                                        <a href="{{ route('proyectos.edit', $value->asignacion) }}"
+                                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
+                                            <flux:icon.user-plus variant="solid" />
+                                        </a>
 
-                                {{-- Botón Eliminar --}}
-                                <form action="{{ route('proyectos.destroy', $value->asignacion) }}" method="POST"
-                                    onsubmit="return confirm('¿Eliminar este registro?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-900 text-sm font-medium">
-                                        <flux:icon.trash variant="solid" />
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                    </div>
-                </li>
+                                        {{-- Botón Eliminar --}}
+                                        <form action="{{ route('proyectos.destroy', $value->asignacion) }}"
+                                            method="POST" onsubmit="return confirm('¿Eliminar este registro?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-900 text-sm font-medium">
+                                                <flux:icon.trash variant="solid" />
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+                            <td>Trabajando</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
 
-            @empty
-                <p class="text-gray-400 italic text-sm text-center py-4">
-                    No has registrado información en esta sección aún.
-                </p>
-            @endforelse
         </div>
     </div>
+    @push('js')
+        @include('usuarios.scripts')
+        <script>
+            $('#proyectos').DataTable({
+                pageLength: 10,
+                columnDefs: [{
+                        type: 'accent-neutralise',
+                        targets: [1, 2]
+                    },
+                    {
+                        targets: 1, // índice de la columna (0 = primera)
+                        width: "200px", // ancho fijo
+                        createdCell: function(td, cellData, rowData, row, col) {
+                            $(td).css({
+                                "white-space": "normal",
+                                "word-wrap": "break-word",
+                                "overflow-wrap": "break-word"
+                            });
+                        }
+                    }
+                ],
+                order: [
+                    [0, "asc"]
+                ],
+                layout: {
+                    topStart: [
+                        'pageLength',
+                        {
+                            buttons: [{
+                                extend: 'excelHtml5',
+                                title: 'Usuarios',
+                                className: 'bg-blue-600 text-sm text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition',
+                                exportOptions: {
+                                    columns: [0, 1, 2, 4]
+                                }
+                            }]
+                        }
+                    ],
+                    topEnd: 'search',
+                    bottomStart: 'info',
+                    bottomEnd: 'paging'
+                },
+                select: {
+                    style: 'api',
+                    info: false
+                },
+                responsive: true,
+                language: {
+                    url: "https://cdn.datatables.net/plug-ins/2.0.2/i18n/es-MX.json"
+                }
+            });
+        </script>
+    @endpush
 </x-layouts::app>
