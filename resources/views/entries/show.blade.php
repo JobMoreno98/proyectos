@@ -30,7 +30,7 @@
         }
     </style>
 
-    <div class="max-w-4xl mx-auto pt-10 px-4 print:py-12 print:px-12">
+    <div class="max-w-6xl mx-auto pt-10 px-4 print:py-12 print:px-12">
 
         {{-- ENCABEZADO --}}
         <div class="bg-white shadow rounded-lg mb-6 overflow-hidden">
@@ -85,7 +85,7 @@
 
                         {{-- Cuerpo del Sub-form --}}
                         <div
-                            class=" space-y-5 mt-1 border border-stone-400 rounded p-2 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 items-center content-center">
+                            class=" space-y-5 mt-1 border border-stone-400 rounded p-2 grid grid-cols-1  print:grid-cols-2 gap-4 items-center content-center">
 
                             @foreach ($childSection->questions as $childQ)
                                 @php
@@ -123,12 +123,13 @@
             @else
                 {{-- PREGUNTAS NORMALES --}}
                 <div
-                    class=" md:col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2 grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 items-center content-center">
+                    class=" md:col-span-2 space-y-5 mt-1 border border-stone-400 rounded p-2 grid grid-cols-1 print:grid-cols-2 gap-4 items-center content-center">
                     <p class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">
                         {{ $question->label }}
                     </p>
 
-                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options" />
+                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options"
+                        />
                 </div>
             @endif
 

@@ -2,6 +2,8 @@
 @props(['type', 'value', 'options' => [], 'label' => '', 'folio' => ''])
 
 @php
+    date_default_timezone_set('America/Mexico_City');
+    setlocale(LC_TIME, 'es_MX.UTF-8', 'esp');
     // Verificamos si la pregunta es dependiente
     $isDependent = filter_var($options['is_dependent'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
@@ -19,8 +21,6 @@
 @endphp
 
 @switch($type)
-
-    {{-- CASO ESPECIAL: SCORED TEXT --}}
     @case('scored_text')
         <div class="flex items-start gap-4">
             {{-- Círculo con la nota --}}
@@ -46,9 +46,20 @@
 
     @case('textarea')
         <div class="flex items-start gap-4">
-            <div class="flex-grow bg-gray-50 rounded p-3 text-gray-700 border border-gray-200">
-                {!! $value !!} {{-- Añadido nl2br para respetar los saltos de línea --}}
+            <div class="flex-grow bg-gray-50 rounded p-3 text-gray-700 border border-gray-200  rounded-sm font-medium bg-blue-100 text-blue-800"
+                style="overflow-wrap: anywhere;">
+                {!! $value !!}
             </div>
+        </div>
+    @break
+
+    @case('date')
+        <div class="text-gray-800">
+            @if (is_array($value))
+                <pre class="text-xs bg-gray-100 p-2 rounded">{{ json_encode($value, JSON_PRETTY_PRINT) }}</pre>
+            @else
+                {{ strftime('%e de %B de %Y', strtotime($value)) }}
+            @endif
         </div>
     @break
 
@@ -71,7 +82,7 @@
                 }
             }
         @endphp
-        <span class="inline-flex items-center px-3 py-1 rounded-sm text-sm font-medium bg-blue-100 text-blue-800">
+        <span class="inline-flex items-center px-3 py-1 rounded-sm font-medium bg-blue-100 text-blue-800">
             {{ $display }}
         </span>
     @break
@@ -119,7 +130,7 @@
     {{-- CASO REFERENCE Y TEXTO NORMAL --}}
 
     @default
-        <div class="text-gray-800">
+        <div class="text-gray-800  bg-blue-100 text-blue-800 p-2 rounded-sm">
             @if (is_array($value))
                 <pre class="text-xs bg-gray-100 p-2 rounded">{{ json_encode($value, JSON_PRETTY_PRINT) }}</pre>
             @else
