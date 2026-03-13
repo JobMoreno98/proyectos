@@ -42,6 +42,7 @@
                             </td>
                             <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
                             </td>
+                            <td>Trabajando</td>
                             <td>
                                 <div class="flex space-x-3">
                                     <a href="{{ route('infor.form', $value->entry_id) }}"
@@ -76,7 +77,7 @@
                                     @endif
                                 </div>
                             </td>
-                            <td>Trabajando</td>
+
                         </tr>
                     @endforeach
                 </tbody>
