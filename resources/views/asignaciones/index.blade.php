@@ -42,6 +42,7 @@
                             </td>
                             <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
                             </td>
+                            <td>Trabajando</td>
                             <td>
                                 <div class="flex space-x-3">
                                     {{-- Documento --}}
@@ -79,7 +80,7 @@
                                     @endisset
                                 </div>
                             </td>
-                            <td>Trabajando</td>
+
                         </tr>
                     @endforeach
                 </tbody>
