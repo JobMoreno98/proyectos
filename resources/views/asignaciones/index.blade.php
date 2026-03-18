@@ -44,28 +44,21 @@
                             </td>
                             <td>
                                 <div class="flex space-x-3">
-                                    <a href="{{ route('infor.form', $value->entry_id) }}"
-                                        class="text-black-600 hover:text-indigo-900 text-sm font-medium">
-                                        <flux:icon.document variant="solid" />
-                                    </a>
+                                    {{-- Documento --}}
+                                    <x-a-button href="{{ route('infor.form', $value->entry_id) }}" icon="document"
+                                        color="black" />
 
-                                    {{-- Botones Activos --}}
-                                    {{-- Botón Editar --}}
-                                    @if ($value->asignacion)
-                                        <a href="{{ route('proyectos.edit', $value->asignacion) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                                            <flux:icon.arrow-turn-right-up variant="solid" />
-                                        </a>
+                                    {{-- Botones según asignación --}}
 
+                                    @isset($value->asignacion)
 
                                         <a href="{{ route('proyectos.edit', $value->asignacion) }}"
                                             class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                             <flux:icon.user-plus variant="solid" />
                                         </a>
 
-                                        {{-- Botón Eliminar --}}
-                                        <form action="{{ route('proyectos.destroy', $value->asignacion) }}"
-                                            method="POST" onsubmit="return confirm('¿Eliminar este registro?');">
+                                        <form action="{{ route('proyectos.destroy', $value->asignacion) }}" method="POST"
+                                            onsubmit="return confirm('¿Eliminar este registro?');">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit"
@@ -73,7 +66,17 @@
                                                 <flux:icon.trash variant="solid" />
                                             </button>
                                         </form>
-                                    @endif
+                                    @else
+                                        @if ($value->is_editable)
+                                            <span class="text-gray-500 text-sm">No definitivo</span>
+                                        @else
+                                            <a href="{{ route('proyectos.send', $value->entry_id) }}"
+                                                class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
+                                                <flux:icon.arrow-turn-right-up variant="mini" />
+                                                Regresar
+                                            </a>
+                                        @endif
+                                    @endisset
                                 </div>
                             </td>
                             <td>Trabajando</td>
