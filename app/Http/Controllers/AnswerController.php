@@ -297,7 +297,7 @@ class AnswerController extends Controller
     {
         $entry = Entry::findOrFail($id);
 
-        if ($entry->user_id !== Auth::user()->id) {
+        if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin') ) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
         if (! $entry->is_editable) {
@@ -306,7 +306,7 @@ class AnswerController extends Controller
         }
         $entry->delete();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard')->with('success', 'Este formulario se ha eliminado de forma exitosa.');
     }
 
     public function asignar(Entry $id)
