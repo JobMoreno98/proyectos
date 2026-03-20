@@ -16,10 +16,12 @@
     @break
 
     @case('repeater_awards')
-        @if(is_array($value))
-            <ul style="margin: 0; padding-left: 20px;">
-                @foreach($value as $award)
-                    <li>{{ $award['nombre'] ?? 'N/A' }} ({{ $award['tipo'] ?? '' }})</li>
+
+    @if(is_array(json_decode($value)))
+            <ul style="margin: 0; padding-left: 20px;text-transform:uppercase;">
+                @foreach(json_decode($value) as $award)
+            
+                    <li class="uppercase"> {{ $award->nombre ?? 'N/A' }} ({{ $award->tipo ?? '' }})</li>
                 @endforeach
             </ul>
         @endif

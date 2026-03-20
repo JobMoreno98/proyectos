@@ -11,8 +11,11 @@
         <div
             class="bg-muted relative hidden h-full flex-col p-10 text-white lg:flex dark:border-e dark:border-neutral-800 justify-center items-center">
             <div class="absolute inset-0 bg-neutral-900"></div>
-            <a href="{{ route('home') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
-
+            <a href="{{ route('home') }}" class="relative z-20 flex flex-col items-center text-lg font-medium"
+                wire:navigate>
+                <div>
+                    <img style="max-width:300px;" src="{{ asset('img/cucshBlanco.png') }}" alt="">
+                </div>
                 {{ config('app.name', 'Laravel') }}
             </a>
 
