@@ -46,13 +46,14 @@
                             <td>
                                 <div class="flex space-x-3">
                                     {{-- Documento --}}
-                                    <x-a-button href="{{ route('infor.form', $value->entry_id) }}" icon="document"
-                                        color="black" />
 
+                                    <a href="{{ route('infor.form', $value->entry_id) }}" target="_blank"
+                                        rel="noopener noreferrer">
+                                        <flux:icon.document variant="solid" />
+                                    </a>
                                     {{-- Botones según asignación --}}
 
                                     @isset($value->asignacion)
-
                                         <a href="{{ route('proyectos.edit', $value->asignacion) }}"
                                             class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                             <flux:icon.user-plus variant="solid" />
@@ -77,6 +78,15 @@
                                                 Regresar
                                             </a>
                                         @endif
+                                        <form action="{{ route('proyectos.destroy', $value->entry_id) }}" method="POST"
+                                            onsubmit="return confirm('¿Eliminar este registro?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit"
+                                                class="text-red-600 hover:text-red-900 text-sm font-medium">
+                                                <flux:icon.trash variant="mini" />
+                                            </button>
+                                        </form>
                                     @endisset
                                 </div>
                             </td>

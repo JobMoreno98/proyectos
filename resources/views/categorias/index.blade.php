@@ -79,6 +79,7 @@
                                                         <flux:icon.trash variant="mini" />
                                                     </button>
                                                 </form>
+                                                
                                             @endif
                                         </div>
                                     </div>
