@@ -155,7 +155,7 @@
                         {{ $question->label }}
                     </p>
 
-                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options" />
+                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options"  :folio="$folioValue . ' - ' . $question->label"/>
                 </div>
             @endif
 
