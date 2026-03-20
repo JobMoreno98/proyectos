@@ -46,9 +46,24 @@
                 $val = $answer ? $answer->value : null;
 
                 // 2. MAGIA: ¿Es dependiente y está vacía? Si es así, la saltamos por completo.
+                // 2. LÓGICA DE DEPENDENCIA MEJORADA
                 $isDependent = filter_var($question->options['is_dependent'] ?? false, FILTER_VALIDATE_BOOLEAN);
-                if ($isDependent && blank($val)) {
-                    continue;
+
+                if ($isDependent) {
+                    $parentId = $question->options['depends_on_question_id'] ?? null;
+                    $requiredValue = $question->options['depends_on_value'] ?? null;
+
+                    if ($parentId) {
+                        // Buscamos lo que el usuario contestó en la pregunta que detona esta dependencia
+                        $parentVal = $answersMap[$parentId]->value ?? null;
+
+                        // Si la respuesta del padre NO es la que activa esta pregunta, la saltamos
+                        if ($parentVal != $requiredValue) {
+                            continue;
+                        }
+                    } elseif (blank($val)) {
+                        continue;
+                    }
                 }
             @endphp
 
@@ -97,8 +112,20 @@
                                         $childQ->options['is_dependent'] ?? false,
                                         FILTER_VALIDATE_BOOLEAN,
                                     );
-                                    if ($isChildDependent && blank($childVal)) {
-                                        continue;
+
+                                    if ($isChildDependent) {
+                                        $childParentId = $childQ->options['depends_on_question_id'] ?? null;
+                                        $childRequiredValue = $childQ->options['depends_on_value'] ?? null;
+
+                                        if ($childParentId) {
+                                            $childParentVal = $childAnswersMap[$childParentId]->value ?? null;
+
+                                            if ($childParentVal != $childRequiredValue) {
+                                                continue;
+                                            }
+                                        } elseif (blank($childVal)) {
+                                            continue;
+                                        }
                                     }
                                 @endphp
 
@@ -128,8 +155,7 @@
                         {{ $question->label }}
                     </p>
 
-                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options"
-                        />
+                    <x-inputs.read-only :type="$question->type" :value="$val" :options="$question->options" />
                 </div>
             @endif
 

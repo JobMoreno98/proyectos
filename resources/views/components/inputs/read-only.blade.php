@@ -111,13 +111,13 @@
 
     {{-- NUEVO: REPEATER AWARDS --}}
     @case('repeater_awards')
-        @if (is_array($value) && count($value) > 0)
+        @if (is_array(json_decode($value)) && count(json_decode($value)) > 0)
             <div class="bg-gray-50 rounded border border-gray-200 p-3">
                 <ul class="list-disc pl-5 space-y-1 text-gray-700">
-                    @foreach ($value as $award)
+                    @foreach (json_decode($value) as $award)
                         <li>
-                            <span class="font-medium">{{ $award['nombre'] ?? 'Sin nombre' }}</span>
-                            <span class="text-sm text-gray-500">({{ $award['tipo'] ?? 'N/A' }})</span>
+                            <span class="font-medium">{{ $award->nombre ?? 'Sin nombre' }}</span>
+                            <span class="text-sm text-gray-500">({{ $award->tipo ?? 'N/A' }})</span>
                         </li>
                     @endforeach
                 </ul>
