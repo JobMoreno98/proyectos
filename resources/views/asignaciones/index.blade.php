@@ -128,7 +128,7 @@
                         {
                             buttons: [{
                                 extend: 'excelHtml5',
-                                title: 'Usuarios',
+                                title: 'Asignacion Proyectos',
                                 className: 'bg-blue-600 text-sm text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition',
                                 exportOptions: {
                                     columns: [0, 1, 2, 4]
