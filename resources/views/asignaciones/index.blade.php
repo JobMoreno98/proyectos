@@ -6,7 +6,7 @@
         <link href="https://cdn.datatables.net/select/2.0.0/css/select.tailwindcss.css" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     @endpush
-    <div class="container m-auto">
+    <div class="container-fluid m-auto">
         <h2 class="text-center text-stone-900"> {{ $categoria->titulo }}</h2>
         <p class="text-center text-stone-900">
             {{ $categoria->descripcion }}
@@ -22,10 +22,11 @@
                     <flux:icon name="plus" variant="micro" />
                 </x-flux::button>
             @endif
-            <table id="proyectos" style="width: 100%">
+            <table id="proyectos" style="width: 100%" class="display nowrap">
                 <thead>
                     <tr>
                         <th>Folio</th>
+                        <th>Nombre</th>
                         <th style="max-width: 15%;    overflow-wrap: break-word;">Título</th>
                         <th>Evaluador</th>
                         <th>Evaluacion</th>
@@ -36,8 +37,13 @@
 
                     @foreach ($datos as $key => $value)
                         <tr>
-                            <td> {{ isset($value->data['folio']) ? $value->data['folio'] : '' }} </td>
-                            <td style="max-width: 15%;    overflow-wrap: break-word;">
+                            <td> {{ isset($value->data['folio']) ? $value->data['folio'] : '' }} <br>
+
+                            </td>
+                            <td>
+                                {{ $value->user->name }}
+                            </td>
+                            <td style="max-width: 15%; overflow-wrap: break-word;">
                                 {{ isset($value->data['titulo']) ? $value->data['titulo'] : '' }}
                             </td>
                             <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
@@ -108,7 +114,7 @@
                         targets: [1, 2]
                     },
                     {
-                        targets: 1, // índice de la columna (0 = primera)
+                        targets: 2, // índice de la columna (0 = primera)
                         width: "200px", // ancho fijo
                         createdCell: function(td, cellData, rowData, row, col) {
                             $(td).css({
