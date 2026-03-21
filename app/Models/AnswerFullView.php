@@ -11,7 +11,6 @@ class AnswerFullView extends Model
     protected $table = 'answers_view';
 
     public $timestamps = false;
-    protected $appends = ['proyecto'];
 
     const SECTION_ASIGNACIONES = 'Asignaciones';
     const PREGUNTA_PROYECTO    = 'Proyecto';
@@ -25,6 +24,16 @@ class AnswerFullView extends Model
     public function entry()
     {
         return $this->belongsTo(Entry::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(ViewDatosGenerales::class,'user_id')->select('name');
+    }
+
+    public function ciclo()
+    {
+        return $this->belongsTo(Ciclos::class);
     }
 
     protected function info(): Attribute
