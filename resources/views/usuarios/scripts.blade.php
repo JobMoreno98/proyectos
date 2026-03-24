@@ -11,6 +11,3 @@
 <script src="https://cdn.datatables.net/select/2.0.0/js/dataTables.select.js"></script>
 <script src="https://cdn.datatables.net/select/2.0.0/js/select.tailwindcss.js"></script>
 <script src="https://cdn.datatables.net/plug-ins/2.0.2/sorting/accent-neutralise.js"></script>
-
-
-

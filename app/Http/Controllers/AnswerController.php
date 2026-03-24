@@ -11,6 +11,7 @@ use App\Models\Sections;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class AnswerController extends Controller
 {
@@ -32,6 +33,8 @@ class AnswerController extends Controller
      */
     public function create($id)
     {
+
+
         $seccion = Sections::with('questions')->where('id', $id)->first();
 
         return view('respuestas.create', compact('seccion'));
@@ -47,11 +50,19 @@ class AnswerController extends Controller
         // Usamos DB::transaction para seguridad (evita datos huérfanos si algo falla)
         $mainEntry = DB::transaction(function () use ($request, $validated) {
 
-            // 1. CREAR EL ENTRY PRINCIPAL (PADRE)
-            $ciclo = Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
-
+            $fecha  = date('Y-m-d');
+            $ciclo = Ciclos::whereJsonContains(
+                'sistemas',
+                'investigacion'
+            )->where('activo', true)
+            ->whereDate('inicio', '<=', $fecha)
+                ->whereDate('fin', '>=', $fecha)
+                ->latest()
+                ->first();
             if (!isset($ciclo->id)) {
-                abort(403, "No hay ciclo para regsitro aun.");
+                //abort(403, "Te encuentras fuera del tiempo de registro.");
+                Alert::info('Alto', 'Te encuentras fuera del tiempo de registro de proyetos');
+                return redirect()->route('dashboard');
             }
 
             $entry = Entry::create([
@@ -128,6 +139,23 @@ class AnswerController extends Controller
     public function show($id)
     {
         $seccion = Sections::with('questions')->where('id', $id)->first();
+        if ($seccion->title == 'Proyectos de Investigación') {
+            $fecha  = date('Y-m-d');
+            $ciclo = Ciclos::whereJsonContains(
+                'sistemas',
+                'investigacion'
+            )->where('activo', true)
+            ->whereDate('inicio', '<=', $fecha)
+                ->whereDate('fin', '>=', $fecha)
+                ->latest()
+                ->first();
+            if (!isset($ciclo->id)) {
+                //abort(403, "Te encuentras fuera del tiempo de registro.");
+                Alert::info('Alto', 'Te encuentras fuera del tiempo de registro de proyetos');
+                return redirect()->route('dashboard');
+            }
+        }
+
 
         return view('respuestas.create', compact('seccion'));
     }
@@ -297,7 +325,7 @@ class AnswerController extends Controller
     {
         $entry = Entry::findOrFail($id);
 
-        if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin') ) {
+        if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin')) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
         if (! $entry->is_editable) {
