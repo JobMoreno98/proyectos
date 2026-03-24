@@ -47,7 +47,13 @@
                             {{ $item->datos_resueltos['Departamento'] }}
                         </td>
                         <td>
-                            {!! $item->count_proyectos !!}
+                            @forelse ($item->count_proyectos as $key => $value)
+                                <a href="{{ route('infor.form', $key) }}" target="_blank"
+                                    rel="noopener noreferrer" class="flex items-center gap-1 p-1 m-1 hover:text-green-600">
+                                    <flux:icon.document variant="mini" /> {{ $value }}
+                                </a>
+                            @empty
+                            @endforelse
                         </td>
                     </tr>
                 @endforeach
@@ -90,7 +96,7 @@
                     layout: {
                         top1: 'searchPanes',
                         topStart: [
-                            'pageLength', 
+                            'pageLength',
                             {
                                 buttons: [{
                                     extend: 'excelHtml5',
@@ -104,7 +110,7 @@
                         ],
                         topEnd: 'search',
                         bottomStart: 'info',
-                        bottomEnd: 'paging' 
+                        bottomEnd: 'paging'
                     },
                     searchPanes: {
                         cascadePanes: true,

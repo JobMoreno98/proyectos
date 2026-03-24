@@ -74,9 +74,9 @@ class ViewDatosGenerales extends Model
             return null;
         }
 
-        $cantidad = implode("<br/>", AnswerFullView::where('ciclo_id', $ciclo_id)
+        $cantidad =  AnswerFullView::where('ciclo_id', $ciclo_id)
             ->where('user_id', $this->user_id)
-            ->where('section_title', 'Proyectos de Investigación')->where('pregunta', 'Folio')->distinct()->pluck('respuesta')->toArray());
+            ->where('section_title', 'Proyectos de Investigación')->where('pregunta', 'Folio')->distinct()->pluck('respuesta','entry_id')->toArray();
 
         return $cantidad ?? 0;
     }
