@@ -48,11 +48,13 @@ class CategoriasController extends Controller
             $categoria->titulo = 'Proyectos de investigación';
 
             return view('categorias.index', compact('categoria'));
+
         } elseif ($categoria->titulo == 'ViewDatosGenerales' && Auth::user()->hasrole('admin')) {
             return redirect()->route('usuarios.index');
         }
         if ($categoria->titulo == 'Asignaciones') {
-            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
+            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->latest()->first();
+
             $query = AnswerFullView::where('ciclo_id', $ciclo->id)
                 ->groupBy('entry_id')
                 ->orderBy('fecha_creado');
@@ -80,7 +82,7 @@ class CategoriasController extends Controller
                 if ($seccion) {
                     return redirect()->route('proyectos.show', $seccion->id);
                 }
-            }
+            }            
         }
 
         if ($categoria->titulo == 'Evaluaciones') {
