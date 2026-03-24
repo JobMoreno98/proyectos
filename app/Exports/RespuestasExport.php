@@ -81,9 +81,17 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
                 // Si es un JSON (checkboxes múltiples), lo limpiamos
                 if (is_string($valor) && str_starts_with($valor, '[')) {
                     $arreglo = json_decode($valor, true);
+
                     if (is_array($arreglo)) {
-                        dd( $arreglo);
-                        $valor = implode(', ', $arreglo);
+                        $collapsed = collect($arreglo)->collapse()->toArray();
+
+                        // Aquí concatenamos directamente los valores que nos interesan
+                        if (isset($collapsed['nombre'], $collapsed['tipo'])) {
+                            $valor = $collapsed['nombre'] . ' - ' . $collapsed['tipo'];
+                        } else {
+                            // fallback si no existen esas claves
+                            $valor = implode(' ', $collapsed);
+                        }
                     }
                 }
 
