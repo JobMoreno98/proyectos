@@ -4,6 +4,7 @@ namespace App\Exports;
 
 use App\Models\Questions;
 use App\Models\AnswerFullView; // <-- TU NUEVO MODELO DE LA VISTA
+use App\Models\ViewDatosGenerales;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
@@ -30,6 +31,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
     {
         // Tu vista ya nos da el nombre y correo, ¡pongámoslos en el Excel!
         $encabezados = [
+            'Código',
             'Nombre',
             'Correo',
             'Ciclo'
@@ -58,10 +60,13 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
             // Tomamos el primer registro solo para sacar los datos generales del usuario
             $datosBase = $respuestasUsuario->first();
+            $datos_user = ViewDatosGenerales::where('user_id', $userId)->first();
+            //dd($datos_user->datos_limpios);
 
             // Iniciamos la fila con los datos fijos
             $fila = [
-                $datosBase->user_name,
+                $datos_user->datos_limpios['Código'],
+                $datos_user->datos_limpios['Apellido Paterno'] . " " . $datos_user->datos_limpios['Apellido Materno'] . " " . $datos_user->datos_limpios['Nombres'],
                 $datosBase->user_email,
                 $datosBase->ciclo->nombre,
             ];
