@@ -68,6 +68,9 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
     })->name('api.validate.folio');
 
     Route::resource('usuarios', UserController::class)->middleware(isAdmin::class)->only('index');
+    Route::get('/asignar-rol/{id}', [UserController::class, 'asignar'])->name('asignar.rol')->middleware(isAdmin::class);
+    Route::put('/asignar-rol/{id}', [UserController::class, 'add_role'])->name('user.assignRole')->middleware(isAdmin::class);
+    
 });
 
 require __DIR__ . '/settings.php';

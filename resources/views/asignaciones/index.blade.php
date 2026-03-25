@@ -40,8 +40,12 @@
                             <td> {{ isset($value->data['folio']) ? $value->data['folio'] : '' }} <br>
 
                             </td>
-                            <td>
-                                {{ $value->user->name }}
+                            <td class="uppercase">
+                                {{ $value->user->datos_limpios['Apellido Paterno'] .
+                                    ' ' .
+                                    $value->user->datos_limpios['Apellido Materno'] .
+                                    ' ' .
+                                    $value->user->datos_limpios['Nombres'] }}
                             </td>
                             <td style="max-width: 15%; overflow-wrap: break-word;">
                                 {{ isset($value->data['titulo']) ? $value->data['titulo'] : '' }}
@@ -71,12 +75,16 @@
                                             @method('DELETE')
                                             <button type="submit"
                                                 class="text-red-600 hover:text-red-900 text-sm font-medium">
-                                                <flux:icon.trash variant="solid" />
+                                                <flux:icon.trash variant="mini" />
                                             </button>
                                         </form>
                                     @else
                                         @if ($value->is_editable)
-                                            <span class="text-gray-500 text-sm">No definitivo</span>
+                                            <a href="{{ route('proyectos.send', $value->entry_id) }}"
+                                                class="flex items-center gap-1 text-red-600 hover:text-green-600 text-sm font-medium">
+                                                <flux:icon.check-circle variant="mini" />
+                                                Enviar
+                                            </a>
                                         @else
                                             <a href="{{ route('proyectos.send', $value->entry_id) }}"
                                                 class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
@@ -126,7 +134,7 @@
                     }
                 ],
                 order: [
-                    [0, "asc"]
+                    [1, "asc"]
                 ],
                 layout: {
                     topStart: [

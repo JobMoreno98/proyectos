@@ -76,8 +76,13 @@ class ViewDatosGenerales extends Model
 
         $cantidad =  AnswerFullView::where('ciclo_id', $ciclo_id)
             ->where('user_id', $this->user_id)
-            ->where('section_title', 'Proyectos de Investigación')->where('pregunta', 'Folio')->distinct()->pluck('respuesta','entry_id')->toArray();
+            ->where('section_title', 'Proyectos de Investigación')->where('pregunta', 'Folio')->distinct()->pluck('respuesta', 'entry_id')->toArray();
 
         return $cantidad ?? 0;
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

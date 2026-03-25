@@ -21,12 +21,11 @@
         <table id="usuarios" class="w-full text-sm text-left text-gray-500 dark:text-gray-400" style="width:100%">
             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                    <th>
-                        Código
-                    </th>
+                    <th> Código </th>
                     <th scope="col" class="px-6 py-3">Nombre</th>
                     <th>División</th>
                     <th>Departamento</th>
+                    <th>Rol</th>
                     <th>Proyectos Registrados</th>
                 </tr>
             </thead>
@@ -46,10 +45,21 @@
                         <td class="uppercase">
                             {{ $item->datos_resueltos['Departamento'] }}
                         </td>
+                        <td class="uppsercase text-center flex flex-col items-center">
+                            <a href="{{ route('asignar.rol', $item->user_id) }}" target="_blank"
+                                rel="noopener noreferrer">
+                                <flux:icon.user variant="mini" />
+                            </a>
+                            
+                            @foreach ($item->user->roles as $role)
+                                {{ ucfirst($role->name) }} <br>
+                            @endforeach
+
+                        </td>
                         <td>
                             @forelse ($item->count_proyectos as $key => $value)
-                                <a href="{{ route('infor.form', $key) }}" target="_blank"
-                                    rel="noopener noreferrer" class="flex items-center gap-1 p-1 m-1 hover:text-green-600">
+                                <a href="{{ route('infor.form', $key) }}" target="_blank" rel="noopener noreferrer"
+                                    class="flex items-center gap-1 p-1 m-1 hover:text-green-600">
                                     <flux:icon.document variant="mini" /> {{ $value }}
                                 </a>
                             @empty

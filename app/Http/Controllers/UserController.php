@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\ViewDatosGenerales;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -20,5 +22,26 @@ class UserController extends Controller
             return strtolower(Str::ascii($apellido));
         })->values();
         return view('usuarios.index', compact('usuarios'));
+    }
+    public function asignar($id)
+    {
+        $user = User::findOrfail($id);
+        $roles = Role::where('name', '!=', 'super_admin')->get();
+        return view('usuarios.asignar', compact('user', 'roles'));
+    }
+    public function add_role(Request $request, $id)
+    {
+        $request->validate([
+            'roles'   => 'required|array',
+            'roles.*' => 'exists:roles,name',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        $user->syncRoles($request->roles);
+
+        return redirect()
+            ->route('asignar.rol', $user->id)
+            ->with('success', 'Roles actualizados correctamente.');
     }
 }

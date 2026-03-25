@@ -28,7 +28,7 @@ class AnswerFullView extends Model
 
     public function user()
     {
-        return $this->belongsTo(ViewDatosGenerales::class,'user_id')->select('name');
+        return $this->belongsTo(ViewDatosGenerales::class, 'user_id');
     }
 
     public function ciclo()
