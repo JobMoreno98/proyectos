@@ -47,7 +47,7 @@
                         </td>
                         <td class="uppsercase text-center flex flex-col items-center">
                             <a href="{{ route('asignar.rol', $item->user_id) }}" target="_blank"
-                                rel="noopener noreferrer">
+                                rel="noopener noreferrer" class="gap-1 p-1 m-1 hover:text-green-600">
                                 <flux:icon.user variant="mini" />
                             </a>
                             
