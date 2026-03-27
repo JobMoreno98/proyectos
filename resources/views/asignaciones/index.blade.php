@@ -68,6 +68,7 @@
                                             class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                             <flux:icon.user-plus variant="solid" />
                                         </a>
+                                        
 
                                         <form action="{{ route('proyectos.destroy', $value->asignacion) }}" method="POST"
                                             onsubmit="return confirm('¿Eliminar este registro?');">

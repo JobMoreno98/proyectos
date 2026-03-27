@@ -143,14 +143,10 @@ class AnswerController extends Controller
             return $entry;
         });
 
-        //dd($mainEntry);
         return redirect()->route('proyectos.edit', $mainEntry)
             ->with('success', 'Registrado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $seccion = Sections::with('questions')->where('id', $id)->first();

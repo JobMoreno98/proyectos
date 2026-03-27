@@ -151,7 +151,6 @@ class AnswerFullView extends Model
     {
 
         $targetId = $this->entry_id;
-        //dd($this);
 
         $nombresPreguntas = ['Proyecto'];
 
@@ -180,18 +179,28 @@ class AnswerFullView extends Model
 
 
         $proyecto_id = AnswerFullView::whereIn('pregunta', $nombresPreguntas)
-            ->where('section_title', self::SECTION_ASIGNACIONES)->where('entry_id',$this->entry_id)
+            ->where('section_title', self::SECTION_ASIGNACIONES)->where('entry_id', $this->entry_id)
             ->value('respuesta');
 
-        
+
         $entry = AnswerFullView::select('entry_id', 'is_editable')
             ->where('pregunta', 'Proyecto')
             ->whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])
             ->where('respuesta', $proyecto_id)
             ->where('user_id', Auth::user()->id)->first();
-            
+
         //dd($proyecto_id,[Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()],Auth::user()->id);
-       
+
         return $entry ?? null;
+    }
+
+    public function getCalificacionAttribute()
+    {
+        $targetId = $this->asignacion;
+        dd($targetId);
+        $entry = Entry::with(['answers.question', 'answers'])->findOrFail($targetId);
+        $existingAnswers = $entry->toArray();
+        dd($existingAnswers);
+        
     }
 }
