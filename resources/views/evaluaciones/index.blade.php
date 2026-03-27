@@ -25,7 +25,6 @@
                                 <flux:icon.information-circle variant="mini" />
                             </a>
                         
-                            {{ $value->evaluacion }}
                             @if (isset($value->evaluacion))
                                 <a target="_blank" href="{{ route('proyectos.print', $value->evaluacion->entry_id) }}"
                                     class="text-black-600 hover:text-indigo-900 text-sm font-medium">

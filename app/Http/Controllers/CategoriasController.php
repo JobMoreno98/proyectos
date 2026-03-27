@@ -87,7 +87,7 @@ class CategoriasController extends Controller
 
         if ($categoria->titulo == 'Evaluaciones') {
 
-            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->where('activo', true)->latest()->first();
+            $ciclo =  Ciclos::whereJsonContains('sistemas', 'investigacion')->latest()->first();
 
             $datos = AnswerFullView::where('ciclo_id', $ciclo->id)->where('section_title', 'Asignaciones')->where('respuesta', Auth::user()->id)
                 ->groupBy('entry_id')

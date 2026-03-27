@@ -28,6 +28,8 @@
                 @if ($seccion->description)
                     <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
                 @endif
+
+
                 <div class="space-y-5 mt-4  grid grid-cols-1 md:grid-cols-2 gap-4 items-center content-center">
 
                     <input type="hidden" name="section_ids[]" value="{{ $seccion->id }}">
@@ -44,8 +46,6 @@
                             $esPreguntaProyecto = strtolower(trim($question->label)) === 'proyecto';
 
                             if ($esPreguntaProyecto) {
-                                // Si $proyectoID viene del controlador (Crear), lo usa.
-                                // Si no viene (Editar), le asigna null sin lanzar error.
                                 $defaultValue = $proyectoID ?? null;
                             }
 
@@ -76,7 +76,6 @@
                                 $componentName = 'inputs.text';
                             }
                         @endphp
-
                         {{-- 2. DECISIÓN DE DIBUJO: Oculto vs Visible --}}
                         @if ($esPreguntaProyecto)
                             {{-- Si es el proyecto, creamos un input oculto puro. No se verá nada en pantalla. --}}
@@ -142,6 +141,12 @@
                             class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold py-1 px-4 rounded shadow-lg transition duration-150">
                             Actualizar
                         </button>
+
+                        <a href="{{ route('proyectos.send', $entry->id) }}"
+                            class="mx-2 flex uppercase text-center items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
+                            <flux:icon.check-circle variant="mini" />
+                            Enviar definitivo
+                        </a>
                     </div>
                 </div>
 
