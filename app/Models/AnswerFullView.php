@@ -185,7 +185,7 @@ class AnswerFullView extends Model
 
         
         $entry = AnswerFullView::select('entry_id', 'is_editable')
-            ->where('pregunta', 'proyecto')
+            ->where('pregunta', 'Proyecto')
             ->whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])
             ->where('respuesta', $proyecto_id)
             ->where('user_id', Auth::user()->id)->first();
