@@ -39,7 +39,7 @@ class AnswerFullView extends Model
     protected function info(): Attribute
     {
         return Attribute::make(
-            get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado')
+            get: fn($value, $attributes) => self::select('respuesta', 'fecha_creado', 'entry_id')
                 ->where('pregunta', 'Proyecto')
                 ->where('entry_id', $attributes['entry_id'])->first()
         );
@@ -151,11 +151,12 @@ class AnswerFullView extends Model
     {
 
         $targetId = $this->entry_id;
+        //dd($this);
 
         $nombresPreguntas = ['Proyecto'];
 
         $entry_id = AnswerFullView::whereIn('pregunta', $nombresPreguntas)
-            ->where('section_title', self::SECTION_ASIGNACIONES)
+            ->where('section_title', self::SECTION_ASIGNACIONES)->where('entry_id', $targetId)
             ->value('respuesta');
 
         $nombresPreguntas = ['Título del Proyecto', 'Folio'];
@@ -177,13 +178,20 @@ class AnswerFullView extends Model
 
         $nombresPreguntas = ['Proyecto'];
 
+
         $proyecto_id = AnswerFullView::whereIn('pregunta', $nombresPreguntas)
-            ->where('section_title', self::SECTION_ASIGNACIONES)
+            ->where('section_title', self::SECTION_ASIGNACIONES)->where('entry_id',$this->entry_id)
             ->value('respuesta');
 
-
-        $entry = AnswerFullView::select('entry_id', 'is_editable')->where('pregunta', 'Proyecto')->where('respuesta', $proyecto_id)->where('user_id', Auth::user()->id)->first();
-
+        
+        $entry = AnswerFullView::select('entry_id', 'is_editable')
+            ->where('pregunta', 'proyecto')
+            ->whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])
+            ->where('respuesta', $proyecto_id)
+            ->where('user_id', Auth::user()->id)->first();
+            
+        //dd($proyecto_id,[Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()],Auth::user()->id);
+       
         return $entry ?? null;
     }
 }

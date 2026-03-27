@@ -7,6 +7,7 @@ use App\Models\Answer;
 use App\Models\AnswerFullView;
 use App\Models\Categorias;
 use App\Models\Entry;
+use App\Models\Questions;
 use App\Models\Sections;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,22 +15,25 @@ use Illuminate\Support\Facades\DB;
 
 class EvaluacionesController extends Controller
 {
-    public function create()
+    public function create($id)
+
     {
-        $idSeccionEvaluacion = Sections::idEvaluacion();
+
+        $tipo = AnswerFullView::where('entry_id', $id)->where('question_id', Questions::idTipo())->value('respuesta');
+        if (strcmp($tipo, "N") == 0) {
+
+            $idSeccionEvaluacion = Sections::idEvaluacionNuevo();
+        } else {
+            $idSeccionEvaluacion = Sections::idEvaluacionContinuacion();
+        }
 
         $seccion = Sections::with(['questions' => function ($q) {
             $q->orderBy('sort_order'); // Asegurar orden correcto
         }])->where('id', $idSeccionEvaluacion)->orderBy('sort_order')->first();
 
+        $proyectoID = $id;
+
         return view('evaluaciones.create', compact('seccion', 'proyectoID'));
-
-        $entry = Entry::with('proyecto')->findOrFail($id);
-
-        $proyectoAsignado = Answer::where('value', $entry->proyecto->value)
-            ->where('question_id', $entry->proyecto->question->options['source_question_id'])->first();
-
-        $proyectoAsignado = Entry::with(['answers.question', 'answers'])->findOrFail($proyectoAsignado->entry_id);
 
         foreach ($proyectoAsignado->answers as $key => $value) {
             echo dd($value->question->section->questions[16]) . "<br/>";

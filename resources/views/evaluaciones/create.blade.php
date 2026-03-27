@@ -12,7 +12,7 @@
                     {{ session('success') }}
                 </x-alert>
             @endif
-            
+
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -23,7 +23,8 @@
                     </ul>
                 </div>
             @endif
- 
+
+
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
             <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
@@ -35,7 +36,14 @@
 
                     <input type="hidden" name="proyecto" value="{{ $proyectoID }}">
 
-                    <h3 class="font-semibold text-gray-800">{{ $seccion->title }}</h3>
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-semibold text-gray-800">{{ $seccion->title }}</h3>
+                        <a href="{{ route('infor.form', $proyectoID) }}"
+                            class="uppercase text-blue-800 hover:text-red-600 text-sm font-medium flex items-center gap-1 p-1 m-1">
+                            <flux:icon.information-circle variant="mini" /> Ver información del proyecto
+                        </a>
+                    </div>
+
                     @if ($seccion->description)
                         <p class="text-gray-500 text-sm mb-4">{{ $seccion->description }}</p>
                     @endif

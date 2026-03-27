@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\Auth;
 class Sections extends Model
 {
     use SoftDeletes;
-    const EVALUACION = 'Evaluaciones';
+    const EVALUACION_NUEVO = 'Evaluaciones Nuevo';
+    const EVALUACION_CONTINUACION = 'Evaluaciones Continuación';
+    const PROYECTOS = 'Proyectos de Investigación';
 
     protected $guarded = [];
 
@@ -46,9 +48,18 @@ class Sections extends Model
             ->get();
     }
 
-    public static function idEvaluacion()
+    public static function idEvaluacionNuevo()
     {
-        return self::select('id')->where('title', self::EVALUACION)->first()->id;
+        return self::select('id')->where('title', self::EVALUACION_NUEVO)->first()->id;
+    }
+    public static function idEvaluacionContinuacion()
+    {
+        return self::select('id')->where('title', self::EVALUACION_CONTINUACION)->first()->id;
+    }
+
+    public static function idProyectos()
+    {
+        return self::select('id')->where('title', self::PROYECTOS)->first()->id;
     }
 
     public function getAllEntriesAttribute()
@@ -58,5 +69,4 @@ class Sections extends Model
             ->orderBy('fecha_creado')
             ->get());
     }
-
 }

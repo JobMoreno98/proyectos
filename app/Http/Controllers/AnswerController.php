@@ -49,17 +49,31 @@ class AnswerController extends Controller
 
         // Usamos DB::transaction para seguridad (evita datos huérfanos si algo falla)
         $mainEntry = DB::transaction(function () use ($request, $validated) {
+            //dd($request->section_ids);
+
+            $idProyectos = Sections::idProyectos();
 
             $fecha  = date('Y-m-d');
-            $ciclo = Ciclos::whereJsonContains(
-                'sistemas',
-                'investigacion'
-            )->where('activo', true)
-            ->whereDate('inicio', '<=', $fecha)
-                ->whereDate('fin', '>=', $fecha)
-                ->latest()
-                ->first();
-            if (!isset($ciclo->id)) {
+            if ($idProyectos == (int)implode($request->section_ids)) {
+                $ciclo = Ciclos::whereJsonContains(
+                    'sistemas',
+                    'investigacion'
+                )->where('activo', true)
+                    ->whereDate('inicio', '<=', $fecha)
+                    ->whereDate('fin', '>=', $fecha)
+                    ->latest()
+                    ->first();
+            } else {
+                $ciclo = Ciclos::whereJsonContains(
+                    'sistemas',
+                    'investigacion'
+                )
+                    ->latest()
+                    ->first();
+            }
+
+
+            if (!isset($ciclo->id) && !Auth::user()->hasRole('admin')) {
                 //abort(403, "Te encuentras fuera del tiempo de registro.");
                 Alert::info('Alto', 'Te encuentras fuera del tiempo de registro de proyetos');
                 return redirect()->route('dashboard');
@@ -125,11 +139,12 @@ class AnswerController extends Controller
                     }
                 }
             }
-
-            return $entry; // Retornamos el entry para usarlo en el redirect
+            
+            return $entry;
         });
 
-        return redirect()->route('proyectos.edit', $mainEntry->id)
+        //dd($mainEntry);
+        return redirect()->route('proyectos.edit', $mainEntry)
             ->with('success', 'Registrado correctamente.');
     }
 
@@ -145,7 +160,7 @@ class AnswerController extends Controller
                 'sistemas',
                 'investigacion'
             )->where('activo', true)
-            ->whereDate('inicio', '<=', $fecha)
+                ->whereDate('inicio', '<=', $fecha)
                 ->whereDate('fin', '>=', $fecha)
                 ->latest()
                 ->first();

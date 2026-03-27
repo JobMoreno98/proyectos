@@ -5,12 +5,15 @@
             {{ $categoria->descripcion }}
         </p>
         <div class="p-3 my-4 text-stone-900 rounded-sm border-1 border-b-indigo-500">
+
+
             @forelse ($datos as $key => $value)
                 <li
                     class="py-3 flex border b-3 rounded-lg boder-stone-300 justify-between items-center hover:bg-gray-50 transition p-2 rounded">
                     <div class="flex items-center">
                         <span class="font-medium text-gray-700">
                             Título: {{ isset($value->asignado['titulo']) ? $value->asignado['titulo'] : '' }}<br>
+                            Folio: {{ isset($value->asignado['folio']) ? $value->asignado['folio'] : '' }}<br>
                             {{ $value->info->fecha_creado->format('d/m/Y') }}
                         </span>
                     </div>
@@ -21,7 +24,8 @@
                                 class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                 <flux:icon.information-circle variant="mini" />
                             </a>
-
+                        
+                            {{ $value->evaluacion }}
                             @if (isset($value->evaluacion))
                                 <a target="_blank" href="{{ route('proyectos.print', $value->evaluacion->entry_id) }}"
                                     class="text-black-600 hover:text-indigo-900 text-sm font-medium">

@@ -24,7 +24,9 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::resource('proyectos', AnswerController::class)->except('create');
 
-    Route::resource('evaluacion', EvaluacionesController::class)->except('show', 'index', 'destroy');
+    Route::resource('evaluacion', EvaluacionesController::class)->except('show', 'index', 'destroy', 'create');
+
+    Route::get('/evaluacion/{id}', [EvaluacionesController::class, 'create'])->name('evaluacion.create');
 
     Route::get('/ver-informacion/{id}', [EvaluacionesController::class, 'show'])->name('infor.form');
 

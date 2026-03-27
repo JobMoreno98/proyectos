@@ -31,13 +31,6 @@
                     </div>
                 </flux:callout>
             @endif
-            @if (Auth::user()->hasRole('admin'))
-                <livewire:exportador-dinamico></livewire:exportador-dinamico>
-            @endif
-
-
-
         </div>
-
     </div>
 </x-layouts::app>
