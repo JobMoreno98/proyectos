@@ -14,3 +14,9 @@
         @endif
     @endcan
 @endforeach
+@if (Auth::user()->hasRole('admin'))
+    <flux:sidebar.item icon="home" :href="route('export.data')" :current="request()->routeIs('export.data')"
+        wire:navigate>
+        Exportaciones
+    </flux:sidebar.item>
+@endif

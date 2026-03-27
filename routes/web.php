@@ -4,6 +4,7 @@ use App\Http\Controllers\AnswerController;
 use App\Http\Controllers\CategoriasController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluacionesController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\isAdmin;
 use App\Models\Answer;
@@ -70,7 +71,7 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
     Route::resource('usuarios', UserController::class)->middleware(isAdmin::class)->only('index');
     Route::get('/asignar-rol/{id}', [UserController::class, 'asignar'])->name('asignar.rol')->middleware(isAdmin::class);
     Route::put('/asignar-rol/{id}', [UserController::class, 'add_role'])->name('user.assignRole')->middleware(isAdmin::class);
-    
+    Route::get('/exportar-datos', [ExportController::class, 'index'])->name('export.data')->middleware(isAdmin::class);
 });
 
 require __DIR__ . '/settings.php';

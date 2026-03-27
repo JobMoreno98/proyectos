@@ -43,7 +43,7 @@
     @endif
 
     {{-- EL ÚNICO GRAN CONTENEDOR --}}
-    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+    <div class="bg-white grid col-span-1 md:col-span-3 rounded-xl shadow-md border border-gray-200 overflow-hidden">
 
         <div class="p-6 md:p-10 space-y-12"> {{-- space-y-12 da un buen respiro entre cada sección --}}
 
