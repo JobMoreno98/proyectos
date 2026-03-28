@@ -16,6 +16,7 @@ class AnswerFullView extends Model
     const PREGUNTA_PROYECTO    = 'Proyecto';
     const PREGUNTA_EVALUADOR   = 'Evaluador';
 
+
     protected $casts = [
         'is_editable' => 'boolean',
         'fecha_creado' => 'date',
@@ -120,7 +121,6 @@ class AnswerFullView extends Model
     {
 
         $targetId = $this->entry_id;
-        //dd($targetId);
         $nombresPreguntas = ['Proyecto'];
 
         $entry_id = AnswerFullView::where('respuesta', $targetId)
@@ -194,13 +194,75 @@ class AnswerFullView extends Model
         return $entry ?? null;
     }
 
-    public function getCalificacionAttribute()
+    public function idPrguntas()
     {
-        $targetId = $this->asignacion;
-        dd($targetId);
-        $entry = Entry::with(['answers.question', 'answers'])->findOrFail($targetId);
-        $existingAnswers = $entry->toArray();
-        dd($existingAnswers);
-        
+        return Questions::whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])->where('label', 'Proyecto')->pluck('id');
+    }
+
+    public function obtenerCalificacionDeEvaluacion()
+    {
+
+        $preguntasEnlaceIds = self::idPrguntas();
+
+        $enlace = AnswerFullView::whereIn('question_id', $preguntasEnlaceIds)
+            ->where('respuesta', $this->entry_id)
+            ->first();
+
+
+        // Si no encontró ninguna evaluación en ninguno de los dos formularios, retorna 0
+        if (!$enlace) {
+            return 'Sin evaluar';
+        }
+        if ($enlace->section_id == Sections::idEvaluacionNuevo()) {
+            $multiplicador = 2.5;
+        } else {
+            $multiplicador = 3.57;
+        }
+        $evaluacionEntryId = $enlace->entry_id;
+
+        $totalPuntos = 0;
+        $hijosIds = [];
+
+        // ... (A partir de aquí, el código 2, 3, 4 y 5 se queda EXACTAMENTE igual) ...
+
+        $preguntasSubFormIds = Questions::where('type', 'sub_form')->pluck('id')->toArray();
+
+        $respuestasPrincipales = AnswerFullView::where('entry_id', $evaluacionEntryId)
+            ->whereIn('section_id', [
+                \App\Models\Sections::idEvaluacionNuevo(),
+                \App\Models\Sections::idEvaluacionContinuacion()
+            ])->where('pregunta', '!=',  'Proyecto')
+            ->get();
+
+        foreach ($respuestasPrincipales as $item) {
+            $valor = trim($item->respuesta);
+            if (in_array($item->question_id, $preguntasSubFormIds)) {
+
+                if (is_numeric($valor) && !empty($valor)) {
+                    $hijosIds[] = $valor;
+                }
+            } else {
+                if (is_numeric($valor) && !empty($valor)) {
+                    dd($valor);
+                    $totalPuntos += (int) $valor;
+                }
+            }
+        }
+
+        if (!empty($hijosIds)) {
+
+            $respuestasHijos = \App\Models\AnswerFullView::whereIn('entry_id', $hijosIds)->get();
+
+            foreach ($respuestasHijos as $itemHijo) {
+                $valorHijo = trim($itemHijo->respuesta);
+                if (is_numeric($valorHijo) && !empty($valorHijo)) {
+                    $totalPuntos += (int) $valorHijo;
+                }
+            }
+        }
+
+
+
+        return $totalPuntos * $multiplicador ?? 'Sin evaluar';
     }
 }

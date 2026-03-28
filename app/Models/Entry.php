@@ -25,11 +25,38 @@ class Entry extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     public function proyecto()
     {
         return $this->hasOne(Answer::class)
             ->whereHas('question')
             ->with('question.section'); // para que cargue también la pregunta
+    }
+
+    public function getCalificacionTotal()
+    {
+        $total = 0;
+        
+        foreach ($this->answers as $respuesta) {
+            if (!blank($respuesta->value) && is_numeric($respuesta->value)) {
+                $total += (float) $respuesta->value;
+            }
+        }
+
+        $preguntasSubForm = Questions::where('type', 'sub_form')->pluck('id');
+
+        $enlacesAHijos = $this->answers->whereIn('question_id', $preguntasSubForm);
+
+        foreach ($enlacesAHijos as $enlace) {
+            if (!blank($enlace->value) && is_numeric($enlace->value)) {
+                $hijo = self::find($enlace->value);
+                if ($hijo) {
+                    
+                    $total += $hijo->getCalificacionTotal();
+                }
+            }
+        }
+
+        return $total;
     }
 }

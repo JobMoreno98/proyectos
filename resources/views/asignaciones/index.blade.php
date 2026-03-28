@@ -52,7 +52,30 @@
                             </td>
                             <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
                             </td>
-                            <td>Trabajando</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @php
+                                    $calificacion = $value->obtenerCalificacionDeEvaluacion();
+                                    $color = 'text-gray-700 bg-gray-50 ring-gray-600/20';
+
+                                    if (is_numeric($calificacion)) {
+                                        if ($calificacion >= 80) {
+                                            $color = 'text-green-700 bg-green-50 ring-green-600/20';
+                                        } elseif ($calificacion >= 60) {
+                                            $color = 'text-yellow-700 bg-yellow-50 ring-yellow-600/20';
+                                        } else {
+                                            $color = 'text-red-700 bg-red-50 ring-red-600/10';
+                                        }
+                                    }
+
+                                @endphp
+                                <div class="flex items-center gap-2">
+                                    <span
+                                        class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
+                                        {{ $calificacion }}
+                                    </span>
+
+                                </div>
+                            </td>
                             <td>
                                 <div class="flex space-x-3">
                                     {{-- Documento --}}
@@ -68,7 +91,7 @@
                                             class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
                                             <flux:icon.user-plus variant="solid" />
                                         </a>
-                                        
+
 
                                         <form action="{{ route('proyectos.destroy', $value->asignacion) }}" method="POST"
                                             onsubmit="return confirm('¿Eliminar este registro?');">
