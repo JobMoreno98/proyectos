@@ -79,7 +79,7 @@
                                                     <input type="checkbox" wire:model.live="preguntasSeleccionadas"
                                                         value="{{ $subQ->id }}"
                                                         class="mt-1 rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                                                    <span class="text-sm text-gray-700 leading-tight">
+                                                    <span class="text-sm text-gray-700 leading-tight text-left">
                                                         {{ $subQ->label }}
                                                     </span>
                                                 </label>
