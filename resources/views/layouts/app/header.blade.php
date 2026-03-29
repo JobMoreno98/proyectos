@@ -14,6 +14,7 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
+    {{--  
     <div id="page-loader"
         style="position:fixed;inset:0;z-index:9999;background:#f8fafc;;display:none;flex-direction:column;align-items:center;justify-content:center;">
 
@@ -34,6 +35,7 @@
         </div>
 
     </div>
+    --}}
     <flux:header class="print:hidden border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 

@@ -42,7 +42,10 @@
     @push('js')
         @include('usuarios.scripts')
         <script>
-            $(document).ready(function() {
+            function inicializarTablaProyectos() {
+                if ($.fn.DataTable.isDataTable('#proyectos')) {
+                    $('#proyectos').DataTable().destroy();
+                }
                 $('#proyectos').DataTable({
                     processing: true,
                     serverSide: true,
@@ -86,11 +89,11 @@
                     ],
                     pageLength: 10,
                     columnDefs: [
-/*
-                        {
-                            type: 'accent-neutralise',
-                            targets: [1, 2]
-                        },*/
+                        /*
+                                                {
+                                                    type: 'accent-neutralise',
+                                                    targets: [1, 2]
+                                                },*/
                         {
                             targets: 2,
                             width: "200px",
@@ -143,7 +146,21 @@
                         url: "https://cdn.datatables.net/plug-ins/2.0.2/i18n/es-MX.json"
                     }
                 });
-            });
+            }
+
+            function esperarDataTables() {
+                // Revisamos si jQuery ($) y DataTables ya existen en la página
+                if (window.jQuery && $.fn.DataTable) {
+                    inicializarTablaProyectos();
+                } else {
+                    // Si no existen, volvemos a preguntar en 50 milisegundos
+                    setTimeout(esperarDataTables, 50);
+                }
+            }
+
+            // En lugar de disparar la tabla directo, disparamos a nuestro "vigilante"
+            document.addEventListener('livewire:navigated', esperarDataTables);
+            document.addEventListener('DOMContentLoaded', esperarDataTables);
         </script>
     @endpush
 </x-layouts::app>
