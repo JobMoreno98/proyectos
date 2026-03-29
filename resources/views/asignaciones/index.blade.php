@@ -43,10 +43,14 @@
         @include('usuarios.scripts')
         <script>
             function inicializarTablaProyectos() {
-                if ($('#proyectos').length === 0) return;
+                if (!document.getElementById('proyectos')) return;
 
                 if ($.fn.DataTable.isDataTable('#proyectos')) {
-                    $('#proyectos').DataTable().destroy();
+                    try {
+                        $('#proyectos').DataTable().destroy();
+                    } catch (e) {
+                        console.warn("Se ignoró tabla huérfana de DataTables.");
+                    }
                 }
 
                 $('#proyectos').DataTable({
@@ -152,9 +156,7 @@
             }
 
             function esperarDataTables() {
-                if (!document.getElementById('proyectos')) {
-                    return;
-                }
+                if (!document.getElementById('proyectos')) return;
 
                 if (window.jQuery && $.fn.DataTable) {
                     inicializarTablaProyectos();
@@ -162,10 +164,16 @@
                     setTimeout(esperarDataTables, 50);
                 }
             }
-
-            // En lugar de disparar la tabla directo, disparamos a nuestro "vigilante"
             document.addEventListener('livewire:navigated', esperarDataTables);
             document.addEventListener('DOMContentLoaded', esperarDataTables);
+
+            document.addEventListener('livewire:navigating', function() {
+                if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#proyectos')) {
+                    try {
+                        $('#proyectos').DataTable().destroy();
+                    } catch (e) {}
+                }
+            });
         </script>
     @endpush
 </x-layouts::app>
