@@ -22,20 +22,22 @@
                     <flux:icon name="plus" variant="micro" />
                 </x-flux::button>
             @endif
-            <table id="proyectos" style="width: 100%" class="display nowrap">
-                <thead>
-                    <tr>
-                        <th>Folio</th>
-                        <th>Nombre</th>
-                        <th style="max-width: 15%; overflow-wrap: break-word;">Título</th>
-                        <th>Evaluador</th>
-                        <th>Evaluacion</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+            <div wire:ignore>
+                <table id="proyectos" style="width: 100%" class="display nowrap">
+                    <thead>
+                        <tr>
+                            <th>Folio</th>
+                            <th>Nombre</th>
+                            <th style="max-width: 15%; overflow-wrap: break-word;">Título</th>
+                            <th>Evaluador</th>
+                            <th>Evaluacion</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
 
         </div>
     </div>
@@ -54,6 +56,7 @@
                 }
 
                 $('#proyectos').DataTable({
+                    destroy: true,
                     processing: true,
                     serverSide: true,
                     ajax: '{{ route('asignaciones.data') }}',
