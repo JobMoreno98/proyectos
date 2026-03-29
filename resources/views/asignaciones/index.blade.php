@@ -44,18 +44,13 @@
             $.fn.dataTable.ext.errMode = 'none';
 
             function inicializarTablaProyectos() {
-                if (!document.getElementById('proyectos')) return;
+                const tabla = document.querySelector('#proyectos');
+                if (!tabla) return;
+                if (!tabla.querySelector('thead') || !tabla.querySelector('tbody')) return;
 
-                if ($.fn.DataTable.isDataTable('#proyectos')) {
-                    try {
-                        $('#proyectos').DataTable().destroy();
-                    } catch (e) {
-                        console.warn("Se ignoró tabla huérfana de DataTables.");
-                    }
-                }
+                if ($.fn.DataTable.isDataTable(tabla)) return;
 
                 $('#proyectos').DataTable({
-                    destroy: true,
                     processing: true,
                     serverSide: true,
                     ajax: '{{ route('asignaciones.data') }}',
@@ -171,16 +166,12 @@
                     setTimeout(esperarDataTables, 50);
                 }
             }
-            document.addEventListener('livewire:navigated', esperarDataTables);
-            document.addEventListener('DOMContentLoaded', esperarDataTables);
-
-            document.addEventListener('livewire:navigating', function() {
-                if (window.jQuery && $.fn.DataTable && $.fn.DataTable.isDataTable('#proyectos')) {
-                    try {
-                        $('#proyectos').DataTable().destroy();
-                    } catch (e) {}
-                }
+            document.addEventListener('livewire:navigated', () => {
+                setTimeout(() => {
+                    inicializarTablaProyectos();
+                }, 100);
             });
+            document.addEventListener('DOMContentLoaded', esperarDataTables);
         </script>
     @endpush
 </x-layouts::app>
