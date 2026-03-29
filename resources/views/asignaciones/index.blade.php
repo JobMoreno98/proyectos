@@ -85,10 +85,12 @@
                         }
                     ],
                     pageLength: 10,
-                    columnDefs: [{
+                    columnDefs: [
+/*
+                        {
                             type: 'accent-neutralise',
                             targets: [1, 2]
-                        },
+                        },*/
                         {
                             targets: 2,
                             width: "200px",

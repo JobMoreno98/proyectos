@@ -110,7 +110,7 @@ class CategoriasController extends Controller
         $query = AnswerFullView::with('user')
             ->where('ciclo_id', $ciclo->id)
             ->where('section_title', 'Proyectos de Investigación')
-            ->groupBy('entry_id');
+            ->where('pregunta', 'Folio');
 
         return DataTables::eloquent($query)
             ->addColumn('folio', function ($row) {
