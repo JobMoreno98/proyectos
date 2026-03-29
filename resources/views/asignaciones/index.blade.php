@@ -43,9 +43,12 @@
         @include('usuarios.scripts')
         <script>
             function inicializarTablaProyectos() {
+                if ($('#proyectos').length === 0) return;
+
                 if ($.fn.DataTable.isDataTable('#proyectos')) {
                     $('#proyectos').DataTable().destroy();
                 }
+
                 $('#proyectos').DataTable({
                     processing: true,
                     serverSide: true,
@@ -149,11 +152,13 @@
             }
 
             function esperarDataTables() {
-                // Revisamos si jQuery ($) y DataTables ya existen en la página
+                if (!document.getElementById('proyectos')) {
+                    return;
+                }
+
                 if (window.jQuery && $.fn.DataTable) {
                     inicializarTablaProyectos();
                 } else {
-                    // Si no existen, volvemos a preguntar en 50 milisegundos
                     setTimeout(esperarDataTables, 50);
                 }
             }
