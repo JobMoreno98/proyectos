@@ -6,7 +6,7 @@
 @foreach ($enlaces as $link)
     @can('view', $link)
         @if ($profileUpdated || $link->isDatosGenerales())
-            <flux:sidebar.item  :href="route('seccion.show', $link->id)"
+            <flux:sidebar.item icon="home" :href="route('seccion.show', $link->id)"
                 :current="request()->routeIs('seccion.show') && (request()->route('categoria')->id == $link->id )"
                 >
                 {{ $link->titulo }}
@@ -15,7 +15,7 @@
     @endcan
 @endforeach
 @if (Auth::user()->hasRole('admin'))
-    <flux:sidebar.item  :href="route('export.data')" :current="request()->routeIs('export.data')"
+    <flux:sidebar.item icon="home" :href="route('export.data')" :current="request()->routeIs('export.data')"
         >
         Exportaciones
     </flux:sidebar.item>

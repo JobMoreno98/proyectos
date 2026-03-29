@@ -1,9 +1,6 @@
 <x-layouts::app :title="$categoria->titulo">
     @push('styles')
         <link href="https://cdn.datatables.net/2.0.2/css/dataTables.tailwindcss.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/buttons/3.0.1/css/buttons.tailwindcss.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/searchpanes/2.3.0/css/searchPanes.tailwindcss.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/select/2.0.0/css/select.tailwindcss.css" rel="stylesheet">
         <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     @endpush
     <div class="container-fluid m-auto">
