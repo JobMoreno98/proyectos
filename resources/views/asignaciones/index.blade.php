@@ -41,7 +41,19 @@
     @push('js')
         @include('usuarios.scripts')
         <script>
+            function limpiarFantasmasDataTables() {
+                if ($.fn.dataTable && $.fn.dataTable.settings) {
+                    for (let i = $.fn.dataTable.settings.length - 1; i >= 0; i--) {
+                        let config = $.fn.dataTable.settings[i];
+                        if (!document.body.contains(config.nTable)) {
+                            $.fn.dataTable.settings.splice(i, 1);
+                        }
+                    }
+                }
+            }
+
             function inicializarTablaProyectos() {
+                limpiarFantasmasDataTables();
                 if (!document.getElementById('proyectos')) return;
 
                 if ($.fn.DataTable.isDataTable('#proyectos')) {
