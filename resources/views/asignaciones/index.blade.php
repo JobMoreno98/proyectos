@@ -41,19 +41,9 @@
     @push('js')
         @include('usuarios.scripts')
         <script>
-            function limpiarFantasmasDataTables() {
-                if ($.fn.dataTable && $.fn.dataTable.settings) {
-                    for (let i = $.fn.dataTable.settings.length - 1; i >= 0; i--) {
-                        let config = $.fn.dataTable.settings[i];
-                        if (!document.body.contains(config.nTable)) {
-                            $.fn.dataTable.settings.splice(i, 1);
-                        }
-                    }
-                }
-            }
+            $.fn.dataTable.ext.errMode = 'none';
 
             function inicializarTablaProyectos() {
-                limpiarFantasmasDataTables();
                 if (!document.getElementById('proyectos')) return;
 
                 if ($.fn.DataTable.isDataTable('#proyectos')) {
@@ -69,6 +59,11 @@
                     processing: true,
                     serverSide: true,
                     ajax: '{{ route('asignaciones.data') }}',
+                    preDrawCallback: function(settings) {
+                        if (!document.body.contains(settings.nTable)) {
+                            return false;
+                        }
+                    },
                     columns: [{
                             data: 'folio',
                             name: 'folio',
