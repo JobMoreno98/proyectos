@@ -201,15 +201,12 @@ class AnswerFullView extends Model
 
     public function obtenerCalificacionDeEvaluacion()
     {
-
         $preguntasEnlaceIds = self::idPrguntas();
 
         $enlace = AnswerFullView::whereIn('question_id', $preguntasEnlaceIds)
             ->where('respuesta', $this->entry_id)
             ->first();
 
-
-        // Si no encontró ninguna evaluación en ninguno de los dos formularios, retorna 0
         if (!$enlace) {
             return 'Sin evaluar';
         }
@@ -223,27 +220,23 @@ class AnswerFullView extends Model
         $totalPuntos = 0;
         $hijosIds = [];
 
-        // ... (A partir de aquí, el código 2, 3, 4 y 5 se queda EXACTAMENTE igual) ...
-
         $preguntasSubFormIds = Questions::where('type', 'sub_form')->pluck('id')->toArray();
 
         $respuestasPrincipales = AnswerFullView::where('entry_id', $evaluacionEntryId)
             ->whereIn('section_id', [
-                \App\Models\Sections::idEvaluacionNuevo(),
-                \App\Models\Sections::idEvaluacionContinuacion()
+                Sections::idEvaluacionNuevo(),
+                Sections::idEvaluacionContinuacion()
             ])->where('pregunta', '!=',  'Proyecto')
             ->get();
-
         foreach ($respuestasPrincipales as $item) {
             $valor = trim($item->respuesta);
             if (in_array($item->question_id, $preguntasSubFormIds)) {
 
-                if (is_numeric($valor) && !empty($valor)) {
+                if (is_numeric($valor) && $valor !== '') {
                     $hijosIds[] = $valor;
                 }
             } else {
-                if (is_numeric($valor) && !empty($valor)) {
-                    dd($valor);
+                if (is_numeric($valor) && $valor !== '') {
                     $totalPuntos += (int) $valor;
                 }
             }
@@ -251,11 +244,11 @@ class AnswerFullView extends Model
 
         if (!empty($hijosIds)) {
 
-            $respuestasHijos = \App\Models\AnswerFullView::whereIn('entry_id', $hijosIds)->get();
+            $respuestasHijos = AnswerFullView::whereIn('entry_id', $hijosIds)->get();
 
             foreach ($respuestasHijos as $itemHijo) {
                 $valorHijo = trim($itemHijo->respuesta);
-                if (is_numeric($valorHijo) && !empty($valorHijo)) {
+                if (is_numeric($valorHijo) && $valorHijo !== '') {
                     $totalPuntos += (int) $valorHijo;
                 }
             }

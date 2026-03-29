@@ -1,6 +1,5 @@
 <div class="max-w-7xl mx-auto py-10 px-4">
 
-    {{-- ENCABEZADO Y BOTÓN DE ACCIÓN --}}
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div>
         </div>
@@ -35,29 +34,23 @@
         </div>
     </div>
 
-    {{-- MENSAJES DE ALERTA --}}
     @if (session('error'))
         <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded shadow-sm">
             {{ session('error') }}
         </div>
     @endif
 
-    {{-- EL ÚNICO GRAN CONTENEDOR --}}
     <div class="bg-white grid col-span-1 md:col-span-3 rounded-xl shadow-md border border-gray-200 overflow-hidden">
 
-        <div class="p-6 md:p-10 space-y-12"> {{-- space-y-12 da un buen respiro entre cada sección --}}
+        <div class="p-6 md:p-10 space-y-12">
 
             @foreach ($secciones as $seccion)
                 <div class="relative">
-
-                    {{-- Título de la Sección como un separador elegante --}}
                     <h3
                         class="text-lg font-bold text-blue-800 border-b-2 border-blue-100 pb-2 mb-5 uppercase tracking-wide">
                         {{ $seccion->title }}
                     </h3>
-
-                    {{-- Cuadrícula interna: 1 columna en celular, 3 o 4 en PC --}}
-                    <div class="grid grid-cols-1 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
                         @foreach ($seccion->questions as $pregunta)
                             @if ($pregunta->type === 'sub_form')

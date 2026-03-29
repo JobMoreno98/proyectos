@@ -34,7 +34,8 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             'Código',
             'Nombre',
             'Correo',
-            'Ciclo'
+            'Ciclo',
+            'Calificación'
         ];
 
         foreach ($this->preguntasConfig as $pregunta) {
@@ -44,76 +45,91 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
         return $encabezados;
     }
 
-    // 2. LA MAGIA DE PIVOTAR DATOS
     public function array(): array
     {
-
-        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)->get();
-
-
-        $respuestasAgrupadas = $respuestasPlanas->groupBy('user_id');
-
         $filasExcel = [];
 
-        // Paso 3: Armamos las filas
-        foreach ($respuestasAgrupadas as $userId => $respuestasUsuario) {
+        // 1. Traemos TODAS las respuestas base de un jalón
+        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)->get();
 
-            // Tomamos el primer registro solo para sacar los datos generales del usuario
-            $datosBase = $respuestasUsuario->first();
-            $datos_user = ViewDatosGenerales::where('user_id', $userId)->first();
-            //dd($datos_user->datos_limpios);
+        // ¡TRUCO PRO! Agrupamos las respuestas en la memoria RAM por entry_id
+        $respuestasPorEntry = $respuestasPlanas->groupBy('entry_id');
 
-            // Iniciamos la fila con los datos fijos
+        $entryIds = $respuestasPlanas->pluck('entry_id')->unique();
+
+        $proyectosPrincipales = AnswerFullView::whereIn('entry_id', $entryIds)
+            ->where('section_title', 'Proyectos de Investigación')
+            ->groupBy('entry_id')
+            ->get();
+
+        $userIds = $proyectosPrincipales->pluck('user_id')->unique();
+        $usuariosPrecargados = ViewDatosGenerales::whereIn('user_id', $userIds)->get()->keyBy('user_id');
+
+        // B. Precargamos TODOS los enlaces de evaluación en una sola consulta
+        $enlacesPrecargados = AnswerFullView::whereIn('question_id', (new AnswerFullView)->idPrguntas())
+            ->whereIn('respuesta', $proyectosPrincipales->pluck('entry_id'))
+            ->get()
+            ->keyBy('respuesta');
+
+        foreach ($proyectosPrincipales as $proyecto) {
+
+            // ¡Lectura desde la RAM ultra rápida! Ya no tocamos la base de datos aquí.
+            $datos_user = $usuariosPrecargados->get($proyecto->user_id);
+
+            $nombreCompleto = trim(($datos_user->datos_limpios['Apellido Paterno'] ?? '') . " " .
+                ($datos_user->datos_limpios['Apellido Materno'] ?? '') . " " .
+                ($datos_user->datos_limpios['Nombres'] ?? ''));
+
             $fila = [
-                $datos_user->datos_limpios['Código'],
-                $datos_user->datos_limpios['Apellido Paterno'] . " " . $datos_user->datos_limpios['Apellido Materno'] . " " . $datos_user->datos_limpios['Nombres'],
-                $datosBase->user_email,
-                $datosBase->ciclo->nombre,
+                $datos_user->datos_limpios['Código'] ?? '',
+                mb_strtoupper($nombreCompleto, 'UTF-8'),
+                $proyecto->user_email,
+                $proyecto->ciclo->nombre ?? '',
             ];
+            $fila[] = $proyecto->obtenerCalificacionDeEvaluacion();
 
-            // Convertimos la colección del usuario en un diccionario [question_id => respuesta]
-            $respuestasMapeadas = $respuestasUsuario->keyBy('question_id');
+            // ¡Lectura desde la RAM! Buscamos las respuestas del proyecto
+            $respuestasProyecto = $respuestasPorEntry->get($proyecto->entry_id);
+            $respuestasProyecto = $respuestasProyecto ? $respuestasProyecto->keyBy('question_id') : collect();
 
-            // Recorremos las columnas (preguntas) para acomodar cada respuesta
+            // ¡Lectura desde la RAM! Buscamos si tiene enlace de evaluación
+            $enlace = $enlacesPrecargados->get($proyecto->entry_id);
+
+            $respuestasEvaluacion = collect();
+            if ($enlace) {
+                // ¡Lectura desde la RAM! Buscamos las respuestas del evaluador
+                $eval = $respuestasPorEntry->get($enlace->entry_id);
+                $respuestasEvaluacion = $eval ? $eval->keyBy('question_id') : collect();
+            }
+
+            // 4. Armamos las columnas fusionando ambos mundos
             foreach ($this->preguntasConfig as $pregunta) {
-                // Buscamos si este usuario contestó esta pregunta en específico
-                $respuesta = $respuestasMapeadas->get($pregunta->id);
 
-                // Ojo: En tu vista la columna se llama 'respuesta', no 'value'
+                $respuesta = $respuestasProyecto->get($pregunta->id) ?? $respuestasEvaluacion->get($pregunta->id);
                 $valor = $respuesta ? trim($respuesta->respuesta) : '';
 
-                // Si es un JSON (checkboxes múltiples), lo limpiamos
-                // Si es un JSON (checkboxes múltiples), lo limpiamos
                 if (is_string($valor) && str_starts_with($valor, '[')) {
                     $arreglo = json_decode($valor, true);
-
                     if (is_array($arreglo)) {
                         $collapsed = collect($arreglo)->collapse()->toArray();
-
-                        // Aquí concatenamos directamente los valores que nos interesan
-                        if (isset($collapsed['nombre'], $collapsed['tipo'])) {
-                            $valor = $collapsed['nombre'] . ' - ' . $collapsed['tipo'];
-                        } else {
-                            // fallback si no existen esas claves
-                            $valor = implode(' ', $collapsed);
-                        }
+                        $valor = isset($collapsed['nombre'], $collapsed['tipo'])
+                            ? $collapsed['nombre'] . ' - ' . $collapsed['tipo']
+                            : implode(' ', $collapsed);
                     }
                 }
 
-                // -> AQUÍ AGREGAS LA MAGIA <-
-                // Limpiamos el HTML sin importar si venía de un texto normal o un checkbox decodificado
-                $valor = $this->limpiarHtml($valor);
-
-                $fila[] = $valor;
+                $fila[] = $this->limpiarHtml($valor);
             }
 
-            // Agregamos la fila terminada a nuestro Excel
+            // Calculamos la calificación matemática final
+
+
             $filasExcel[] = $fila;
         }
 
         return $filasExcel;
     }
-    // TRADUCTOR DE HTML A TEXTO PLANO
+
     private function limpiarHtml($texto)
     {
         if (!is_string($texto) || empty($texto)) {
@@ -135,10 +151,8 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
         return $texto;
     }
 
-    // ACTIVAR EL "AJUSTAR TEXTO" EN EXCEL
     public function styles(Worksheet $sheet)
     {
-        // Esto le dice a Excel que permita celdas de varias líneas en toda la hoja
         $sheet->getStyle($sheet->calculateWorksheetDimension())->getAlignment()->setWrapText(true);
     }
 }

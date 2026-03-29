@@ -27,110 +27,13 @@
                     <tr>
                         <th>Folio</th>
                         <th>Nombre</th>
-                        <th style="max-width: 15%;    overflow-wrap: break-word;">Título</th>
+                        <th style="max-width: 15%; overflow-wrap: break-word;">Título</th>
                         <th>Evaluador</th>
                         <th>Evaluacion</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-
-                    @foreach ($datos as $key => $value)
-                        <tr>
-                            <td> {{ isset($value->data['folio']) ? $value->data['folio'] : '' }} <br>
-
-                            </td>
-                            <td class="uppercase">
-                                {{ $value->user->datos_limpios['Apellido Paterno'] .
-                                    ' ' .
-                                    $value->user->datos_limpios['Apellido Materno'] .
-                                    ' ' .
-                                    $value->user->datos_limpios['Nombres'] }}
-                            </td>
-                            <td style="max-width: 15%; overflow-wrap: break-word;">
-                                {{ isset($value->data['titulo']) ? $value->data['titulo'] : '' }}
-                            </td>
-                            <td> {{ isset($value->evalaudor_data['nombres']) ? $value->evalaudor_data['nombres'] . ' ' . $value->evalaudor_data['apellido-paterno'] : 'Sin evaluador' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                @php
-                                    $calificacion = $value->obtenerCalificacionDeEvaluacion();
-                                    $color = 'text-gray-700 bg-gray-50 ring-gray-600/20';
-
-                                    if (is_numeric($calificacion)) {
-                                        if ($calificacion >= 80) {
-                                            $color = 'text-green-700 bg-green-50 ring-green-600/20';
-                                        } elseif ($calificacion >= 60) {
-                                            $color = 'text-yellow-700 bg-yellow-50 ring-yellow-600/20';
-                                        } else {
-                                            $color = 'text-red-700 bg-red-50 ring-red-600/10';
-                                        }
-                                    }
-
-                                @endphp
-                                <div class="flex items-center gap-2">
-                                    <span
-                                        class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $color }}">
-                                        {{ $calificacion }}
-                                    </span>
-
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex space-x-3">
-                                    {{-- Documento --}}
-
-                                    <a href="{{ route('infor.form', $value->entry_id) }}" target="_blank"
-                                        rel="noopener noreferrer">
-                                        <flux:icon.document variant="solid" />
-                                    </a>
-                                    {{-- Botones según asignación --}}
-
-                                    @isset($value->asignacion)
-                                        <a href="{{ route('proyectos.edit', $value->asignacion) }}"
-                                            class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
-                                            <flux:icon.user-plus variant="solid" />
-                                        </a>
-
-
-                                        <form action="{{ route('proyectos.destroy', $value->asignacion) }}" method="POST"
-                                            onsubmit="return confirm('¿Eliminar este registro?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="text-red-600 hover:text-red-900 text-sm font-medium">
-                                                <flux:icon.trash variant="mini" />
-                                            </button>
-                                        </form>
-                                    @else
-                                        @if ($value->is_editable)
-                                            <a href="{{ route('proyectos.send', $value->entry_id) }}"
-                                                class="flex items-center gap-1 text-red-600 hover:text-green-600 text-sm font-medium">
-                                                <flux:icon.check-circle variant="mini" />
-                                                Enviar
-                                            </a>
-                                        @else
-                                            <a href="{{ route('proyectos.send', $value->entry_id) }}"
-                                                class="flex items-center gap-1 text-green-600 hover:text-yellow-900 text-sm font-medium">
-                                                <flux:icon.arrow-turn-right-up variant="mini" />
-                                                Regresar
-                                            </a>
-                                        @endif
-                                        <form action="{{ route('proyectos.destroy', $value->entry_id) }}" method="POST"
-                                            onsubmit="return confirm('¿Eliminar este registro?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit"
-                                                class="text-red-600 hover:text-red-900 text-sm font-medium">
-                                                <flux:icon.trash variant="mini" />
-                                            </button>
-                                        </form>
-                                    @endisset
-                                </div>
-                            </td>
-
-                        </tr>
-                    @endforeach
                 </tbody>
             </table>
 
@@ -139,53 +42,105 @@
     @push('js')
         @include('usuarios.scripts')
         <script>
-            $('#proyectos').DataTable({
-                pageLength: 10,
-                columnDefs: [{
-                        type: 'accent-neutralise',
-                        targets: [1, 2]
-                    },
-                    {
-                        targets: 2, // índice de la columna (0 = primera)
-                        width: "200px", // ancho fijo
-                        createdCell: function(td, cellData, rowData, row, col) {
-                            $(td).css({
-                                "white-space": "normal",
-                                "word-wrap": "break-word",
-                                "overflow-wrap": "break-word"
-                            });
-                        }
-                    }
-                ],
-                order: [
-                    [1, "asc"]
-                ],
-                layout: {
-                    topStart: [
-                        'pageLength',
+            $(document).ready(function() {
+                $('#proyectos').DataTable({
+                    processing: true,
+                    serverSide: true,
+                    ajax: '{{ route('asignaciones.data') }}',
+                    columns: [{
+                            data: 'folio',
+                            name: 'folio',
+                            orderable: false,
+                            searchable: true
+                        },
                         {
-                            buttons: [{
-                                extend: 'excelHtml5',
-                                title: 'Asignacion Proyectos',
-                                className: 'bg-blue-600 text-sm text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition',
-                                exportOptions: {
-                                    columns: [0, 1, 2, 4]
-                                }
-                            }]
+                            data: 'nombre',
+                            name: 'nombre',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'titulo',
+                            name: 'titulo',
+                            orderable: true,
+                            searchable: true
+                        },
+                        {
+                            data: 'evaluador',
+                            name: 'evaluador',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'evaluacion',
+                            name: 'evaluacion',
+                            orderable: false,
+                            searchable: false
+                        },
+                        {
+                            data: 'acciones',
+                            name: 'acciones',
+                            orderable: false,
+                            searchable: false
                         }
                     ],
-                    topEnd: 'search',
-                    bottomStart: 'info',
-                    bottomEnd: 'paging'
-                },
-                select: {
-                    style: 'api',
-                    info: false
-                },
-                responsive: true,
-                language: {
-                    url: "https://cdn.datatables.net/plug-ins/2.0.2/i18n/es-MX.json"
-                }
+                    pageLength: 10,
+                    columnDefs: [{
+                            type: 'accent-neutralise',
+                            targets: [1, 2]
+                        },
+                        {
+                            targets: 2,
+                            width: "200px",
+                            createdCell: function(td, cellData, rowData, row, col) {
+                                $(td).css({
+                                    "white-space": "normal",
+                                    "word-wrap": "break-word",
+                                    "overflow-wrap": "break-word"
+                                });
+                            }
+                        }
+                    ],
+                    layout: {
+                        topStart: [
+                            'pageLength',
+                            {
+                                buttons: [{
+                                    text: 'Exportar Completo',
+                                    className: 'bg-green-600 text-sm text-white px-4 py-2 rounded shadow hover:bg-green-700 transition',
+                                    action: function(e, dt, node, config) {
+                                        // 1. dt.ajax.params() extrae toda la configuración actual de la tabla (búsquedas, orden, etc.)
+                                        // 2. $.param() convierte eso en formato de URL (?search[value]=Juan&order[0][dir]=asc...)
+                                        var params = $.param(dt.ajax.params());
+                                        var url = '{{ route('asignaciones.exportar') }}?' +
+                                            params;
+
+                                        // 3. Redirigimos a la ruta de exportación pegándole esos parámetros
+                                        window.open(url, '_blank');
+
+                                        // 3. Por si el loader que se quedó pegado es el propio de DataTables,
+                                        // le mandamos la orden estricta de apagarse.
+                                        dt.processing(false);
+                                    }
+                                }]
+                            }
+                        ],
+                        topEnd: 'search',
+                        bottomStart: 'info',
+                        bottomEnd: 'paging'
+                    },
+                    order: [
+                        [1, 'asc']
+                    ],
+                    select: {
+                        style: 'api',
+                        info: false
+                    },
+                    responsive: true,
+                    language: {
+                        url: "https://cdn.datatables.net/plug-ins/2.0.2/i18n/es-MX.json"
+                    }
+                });
             });
         </script>
     @endpush

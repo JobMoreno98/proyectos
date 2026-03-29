@@ -84,7 +84,7 @@ class ExportadorDinamico extends Component
         }
         return Excel::download(
             new RespuestasExport($this->preguntasSeleccionadas),
-            'reporte_personalizado_' . date('Ymd_His') . '.xlsx'
+            'reporte__' . date('Ymd_His') . '.xlsx'
         );
     }
 

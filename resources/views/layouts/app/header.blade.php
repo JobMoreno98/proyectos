@@ -14,7 +14,26 @@
 </head>
 
 <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <div id="page-loader"
+        style="position:fixed;inset:0;z-index:9999;background:#f8fafc;;display:none;flex-direction:column;align-items:center;justify-content:center;">
 
+        <svg class="pl" viewBox="0 0 240 240">
+            <circle class="pl__ring pl__ring--a" cx="120" cy="120" r="105" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 660" stroke-dashoffset="-330" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--b" cx="120" cy="120" r="35" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 220" stroke-dashoffset="-110" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--c" cx="85" cy="120" r="70" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+            <circle class="pl__ring pl__ring--d" cx="155" cy="120" r="70" fill="none" stroke="#000"
+                stroke-width="20" stroke-dasharray="0 440" stroke-linecap="round"></circle>
+        </svg>
+
+        <div
+            style="margin-top:24px;color:#255ff4;font-weight:600;font-family:sans-serif;font-size:18px;letter-spacing:1px;">
+            Cargando...
+        </div>
+
+    </div>
     <flux:header class="print:hidden border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.toggle class="lg:hidden mr-2" icon="bars-2" inset="left" />
 

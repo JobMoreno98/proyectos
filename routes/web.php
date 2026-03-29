@@ -74,6 +74,9 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
     Route::get('/asignar-rol/{id}', [UserController::class, 'asignar'])->name('asignar.rol')->middleware(isAdmin::class);
     Route::put('/asignar-rol/{id}', [UserController::class, 'add_role'])->name('user.assignRole')->middleware(isAdmin::class);
     Route::get('/exportar-datos', [ExportController::class, 'index'])->name('export.data')->middleware(isAdmin::class);
+    Route::get('/asignaciones-datos',[CategoriasController::class,'datatable'])->name('asignaciones.data')->middleware(isAdmin::class);
+
+    Route::get('/asignaciones/exportar', [CategoriasController::class, 'exportarExcel'])->name('asignaciones.exportar')->middleware(isAdmin::class);
 });
 
 require __DIR__ . '/settings.php';
