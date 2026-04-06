@@ -14,6 +14,7 @@ class Sections extends Model
     const EVALUACION_NUEVO = 'Evaluaciones Nuevo';
     const EVALUACION_CONTINUACION = 'Evaluaciones Continuación';
     const PROYECTOS = 'Proyectos de Investigación';
+    const ASIGNACIONES = 'ASIGNACIONES';
 
     protected $guarded = [];
 
@@ -55,6 +56,11 @@ class Sections extends Model
     public static function idEvaluacionContinuacion()
     {
         return self::select('id')->where('title', self::EVALUACION_CONTINUACION)->first()->id;
+    }
+
+    public static function idAsignaciones()
+    {
+        return self::select('id')->where('title', self::ASIGNACIONES)->first()->id;
     }
 
     public static function idProyectos()

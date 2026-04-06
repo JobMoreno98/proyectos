@@ -3,18 +3,25 @@
 namespace App\Exports;
 
 use App\Models\Questions;
-use App\Models\AnswerFullView; // <-- TU NUEVO MODELO DE LA VISTA
-use App\Models\ViewDatosGenerales;
+use App\Models\AnswerFullView;
+use App\Models\Sections;
 use Maatwebsite\Excel\Concerns\FromArray;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithColumnWidths;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles
+class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithStyles, WithColumnWidths
 {
     protected $preguntaIds;
     protected $preguntasConfig;
+
+    private $cacheLimpieza = [];
+
+
+    private $dataEvaluaciones;
+    private $preguntasSubFormIds;
 
     public function __construct($preguntaIds)
     {
@@ -26,14 +33,11 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             ->get();
     }
 
-    // 1. ENCABEZADOS (Aprovechamos los datos extra de tu vista)
     public function headings(): array
     {
-        // Tu vista ya nos da el nombre y correo, ¡pongámoslos en el Excel!
         $encabezados = [
             'Código',
             'Nombre',
-            'Correo',
             'Ciclo',
             'Calificación'
         ];
@@ -49,80 +53,162 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
     {
         $filasExcel = [];
 
-        // 1. Traemos TODAS las respuestas base de un jalón
-        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)->get();
+        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)
+            ->select('entry_id', 'question_id', 'respuesta')
+            ->get()
+            ->groupBy('entry_id')
+            ->map(fn($items) => $items->pluck('respuesta', 'question_id'));
 
-        // ¡TRUCO PRO! Agrupamos las respuestas en la memoria RAM por entry_id
-        $respuestasPorEntry = $respuestasPlanas->groupBy('entry_id');
+        $entryIds = $respuestasPlanas->keys();
 
-        $entryIds = $respuestasPlanas->pluck('entry_id')->unique();
 
         $proyectosPrincipales = AnswerFullView::whereIn('entry_id', $entryIds)
             ->where('section_title', 'Proyectos de Investigación')
-            ->groupBy('entry_id')
-            ->get();
-
-        $userIds = $proyectosPrincipales->pluck('user_id')->unique();
-        $usuariosPrecargados = ViewDatosGenerales::whereIn('user_id', $userIds)->get()->keyBy('user_id');
-
-        // B. Precargamos TODOS los enlaces de evaluación en una sola consulta
-        $enlacesPrecargados = AnswerFullView::whereIn('question_id', (new AnswerFullView)->idPrguntas())
-            ->whereIn('respuesta', $proyectosPrincipales->pluck('entry_id'))
+            ->with(['user', 'ciclo'])
             ->get()
-            ->keyBy('respuesta');
+            ->unique('entry_id');
+
+        $evaluacionesMap = AnswerFullView::where('pregunta', 'Proyecto')
+            ->whereIn('respuesta', $entryIds)
+            ->whereIn('section_id', [
+                Sections::idEvaluacionNuevo(),
+                Sections::idEvaluacionContinuacion()
+            ])
+            ->pluck('entry_id', 'respuesta');
+
+        $evaluacionIds = $evaluacionesMap->values();
+
+        $subForms = AnswerFullView::where('tipo', 'sub_form')
+            ->where(function ($q) use ($entryIds, $evaluacionIds) {
+                $q->whereIn('entry_id', $entryIds)
+                    ->orWhereIn('entry_id', $evaluacionIds);
+            })
+            ->get()
+            ->groupBy('entry_id');
+
+        $subFormIds = $subForms->flatten()->pluck('respuesta')->filter()->unique();
+
+        $subFormsRespuestas = AnswerFullView::whereIn('entry_id', $subFormIds)
+            ->get()
+            ->groupBy('entry_id');
+
+        $respuestasEvaluacion = AnswerFullView::whereIn('entry_id', $evaluacionIds)
+            ->get()
+            ->groupBy('entry_id');
+
+        $preguntasSubFormIds = Questions::where('type', 'sub_form')->pluck('id')->toArray();
+
 
         foreach ($proyectosPrincipales as $proyecto) {
 
-            // ¡Lectura desde la RAM ultra rápida! Ya no tocamos la base de datos aquí.
-            $datos_user = $usuariosPrecargados->get($proyecto->user_id);
+            $user = $proyecto->user;
 
-            $nombreCompleto = trim(($datos_user->datos_limpios['Apellido Paterno'] ?? '') . " " .
-                ($datos_user->datos_limpios['Apellido Materno'] ?? '') . " " .
-                ($datos_user->datos_limpios['Nombres'] ?? ''));
+            $nombreCompleto = mb_strtoupper(trim(
+                ($user->datos_limpios['Apellido Paterno'] ?? '') . " " .
+                    ($user->datos_limpios['Apellido Materno'] ?? '') . " " .
+                    ($user->datos_limpios['Nombres'] ?? '')
+            ), 'UTF-8');
 
-            $fila = [
-                $datos_user->datos_limpios['Código'] ?? '',
-                mb_strtoupper($nombreCompleto, 'UTF-8'),
-                $proyecto->user_email,
-                $proyecto->ciclo->nombre ?? '',
-            ];
-            $fila[] = $proyecto->obtenerCalificacionDeEvaluacion();
+            $evaluacionId = $evaluacionesMap[$proyecto->entry_id] ?? null;
 
-            // ¡Lectura desde la RAM! Buscamos las respuestas del proyecto
-            $respuestasProyecto = $respuestasPorEntry->get($proyecto->entry_id);
-            $respuestasProyecto = $respuestasProyecto ? $respuestasProyecto->keyBy('question_id') : collect();
+            $calificacion = 'Sin evaluar';
 
-            // ¡Lectura desde la RAM! Buscamos si tiene enlace de evaluación
-            $enlace = $enlacesPrecargados->get($proyecto->entry_id);
+            if ($evaluacionId && isset($respuestasEvaluacion[$evaluacionId])) {
 
-            $respuestasEvaluacion = collect();
-            if ($enlace) {
-                // ¡Lectura desde la RAM! Buscamos las respuestas del evaluador
-                $eval = $respuestasPorEntry->get($enlace->entry_id);
-                $respuestasEvaluacion = $eval ? $eval->keyBy('question_id') : collect();
-            }
+                $multiplicador = 3.57; // default
 
-            // 4. Armamos las columnas fusionando ambos mundos
-            foreach ($this->preguntasConfig as $pregunta) {
+                foreach ($respuestasEvaluacion[$evaluacionId] as $item) {
+                    if ($item->pregunta === 'Proyecto') {
+                        $multiplicador = $item->section_id == Sections::idEvaluacionNuevo() ? 2.5 : 3.57142;
 
-                $respuesta = $respuestasProyecto->get($pregunta->id) ?? $respuestasEvaluacion->get($pregunta->id);
-                $valor = $respuesta ? trim($respuesta->respuesta) : '';
-
-                if (is_string($valor) && str_starts_with($valor, '[')) {
-                    $arreglo = json_decode($valor, true);
-                    if (is_array($arreglo)) {
-                        $collapsed = collect($arreglo)->collapse()->toArray();
-                        $valor = isset($collapsed['nombre'], $collapsed['tipo'])
-                            ? $collapsed['nombre'] . ' - ' . $collapsed['tipo']
-                            : implode(' ', $collapsed);
+                        break;
                     }
                 }
 
-                $fila[] = $this->limpiarHtml($valor);
+                $total = 0;
+                $hijosIds = [];
+
+                foreach ($respuestasEvaluacion[$evaluacionId] as $item) {
+                    $valor = trim($item->respuesta);
+                    if (in_array($item->question_id, $preguntasSubFormIds)) {
+                        if (is_numeric($valor)) $hijosIds[] = $valor;
+                    }
+                }
+
+                foreach ($hijosIds as $id) {
+                    if (isset($subFormsRespuestas[$id])) {
+                        foreach ($subFormsRespuestas[$id] as $hijo) {
+                            if (is_numeric($hijo->respuesta)) {
+                                $total += (int) $hijo->respuesta;
+                                //echo "Sumado " . $hijo->respuesta . "<br/>";
+                                //echo "Total " . $total . "<br/>";
+                            }
+                        }
+                    }
+                }
+                //dd($hijosIds, $total, $multiplicador, $total * $multiplicador);
+
+                $calificacion = $total * $multiplicador;
             }
 
-            // Calculamos la calificación matemática final
+            $fila = [
+                $user->datos_limpios['Código'] ?? '',
+                $nombreCompleto,
+                $proyecto->ciclo->nombre ?? '',
+                $calificacion,
+            ];
 
+            $respuestasEntry = $respuestasPlanas->get($proyecto->entry_id, collect());
+
+            $subFormsEntry = collect();
+
+            $ids = [];
+
+            if (isset($subForms[$proyecto->entry_id])) {
+                $ids = array_merge(
+                    $ids,
+                    $subForms[$proyecto->entry_id]
+                        ->where('section_title', '!=', 'Archivos')
+                        ->pluck('respuesta')
+                        ->toArray()
+                );
+            }
+
+            if ($evaluacionId && isset($subForms[$evaluacionId])) {
+                $ids = array_merge(
+                    $ids,
+                    $subForms[$evaluacionId]->pluck('respuesta')->toArray()
+                );
+            }
+
+            foreach ($ids as $id) {
+                if (isset($subFormsRespuestas[$id])) {
+                    foreach ($subFormsRespuestas[$id] as $item) {
+                        $subFormsEntry[$item->question_id] = $item->respuesta;
+                    }
+                }
+            }
+
+            $dataMerged = [];
+
+            foreach ($subFormsEntry as $k => $v) {
+                $dataMerged[$k] = $v;
+            }
+
+            foreach ($respuestasEntry as $k => $v) {
+                if (!isset($dataMerged[$k])) {
+                    $dataMerged[$k] = $v;
+                }
+            }
+
+            $dataMerged = collect($dataMerged);
+
+            //dd($respuestasPlanas, $evaluacionesMap, $dataMerged, $respuestasPlanas->get($proyecto->entry_id, collect()));
+
+            foreach ($this->preguntasConfig as $pregunta) {
+                $valor = $dataMerged->get($pregunta->id, 'Sin respuesta');
+                $fila[] = $this->limpiarHtml($valor);
+            }
 
             $filasExcel[] = $fila;
         }
@@ -130,29 +216,53 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
         return $filasExcel;
     }
 
+
     private function limpiarHtml($texto)
     {
-        if (!is_string($texto) || empty($texto)) {
-            return $texto;
-        }
+        if (!is_string($texto) || empty($texto)) return $texto;
 
-        // 1. Reemplazamos cierres de párrafo, listas y saltos HTML por saltos de línea reales (\n)
-        $texto = str_ireplace(['<br>', '<br/>', '<br />', '</p>', '</li>', '</ul>', '</h1>', '</h2>', '</h3>'], "\n", $texto);
+        $hash = md5($texto);
+        if (isset($this->cacheLimpieza[$hash])) return $this->cacheLimpieza[$hash];
 
-        // 2. Destruimos cualquier otra etiqueta HTML sobrante (negritas, cursivas, tablas, etc.)
-        $texto = strip_tags($texto);
+        $textoLimpio = str_ireplace(
+            ['<br>', '<br/>', '<br />', '</p>', '</li>', '</ul>', '</h1>', '</h2>', '</h3>'],
+            "\n",
+            $texto
+        );
 
-        // 3. Traducimos entidades especiales (ej. &nbsp; a espacio, &aacute; a á)
-        $texto = html_entity_decode($texto, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $textoLimpio = strip_tags($textoLimpio);
+        $textoLimpio = html_entity_decode($textoLimpio, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $textoLimpio = trim(preg_replace("/\n+/", "\n", $textoLimpio));
 
-        // 4. Limpiamos saltos de línea duplicados para que no queden huecos gigantes
-        $texto = trim(preg_replace("/\n+/", "\n", $texto));
-
-        return $texto;
+        return $this->cacheLimpieza[$hash] = $textoLimpio;
     }
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle($sheet->calculateWorksheetDimension())->getAlignment()->setWrapText(true);
+        $sheet->getStyle($sheet->calculateWorksheetDimension())
+            ->getAlignment()
+            ->setWrapText(true);
+    }
+    public function columnWidths(): array
+    {
+        $totalColumnas = 4 + count($this->preguntasConfig); 
+
+        $widths = [];
+
+        for ($i = 0; $i < $totalColumnas; $i++) {
+            $col = $this->getColumnLetter($i);
+            $widths[$col] = 15;
+        }
+
+        return $widths;
+    }
+    private function getColumnLetter($index)
+    {
+        $letter = '';
+        while ($index >= 0) {
+            $letter = chr($index % 26 + 65) . $letter;
+            $index = intdiv($index, 26) - 1;
+        }
+        return $letter;
     }
 }

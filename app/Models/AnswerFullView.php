@@ -194,14 +194,14 @@ class AnswerFullView extends Model
         return $entry ?? null;
     }
 
-    public function idPrguntas()
+    public function idPreguntas()
     {
         return Questions::whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])->where('label', 'Proyecto')->pluck('id');
     }
 
     public function obtenerCalificacionDeEvaluacion()
     {
-        $preguntasEnlaceIds = self::idPrguntas();
+        $preguntasEnlaceIds = self::idPreguntas();
 
         $enlace = AnswerFullView::whereIn('question_id', $preguntasEnlaceIds)
             ->where('respuesta', $this->entry_id)
@@ -257,5 +257,39 @@ class AnswerFullView extends Model
 
 
         return $totalPuntos * $multiplicador ?? 'Sin evaluar';
+    }
+
+    public function getIdEvaluacionAttribute()
+    {
+
+        $entry = $this->entry_id;
+
+        return AnswerFullView::select('entry_id')
+            ->where('pregunta', 'Proyecto')
+            ->whereIn('section_id', [Sections::idEvaluacionNuevo(), Sections::idEvaluacionContinuacion()])
+            ->where('respuesta', $entry)
+            ->value('entry_id');
+    }
+
+    public function getSubFormAttribute()
+    {
+
+        $entry = $this->entry_id;
+
+        $sub_forms = AnswerFullView::where('tipo', 'sub_form')
+            ->where('entry_id', $entry)->where('section_title', '!=', 'Archivos')
+            ->pluck('respuesta')
+            ->toArray();
+
+        $evaluacion = AnswerFullView::where('tipo', 'sub_form')
+            ->where('entry_id', $this->id_evaluacion)
+            ->pluck('respuesta')
+            ->toArray();
+        
+
+        $sub_forms = array_merge($evaluacion, $sub_forms);
+
+        return AnswerFullView::whereIn('entry_id', $sub_forms)
+            ->orderBy('entry_id')->pluck('respuesta', 'question_id');
     }
 }
