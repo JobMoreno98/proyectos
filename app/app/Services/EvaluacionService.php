@@ -46,7 +46,7 @@ class EvaluacionService
             return 'Sin evaluar';
         }
 
-        $multiplicador = $enlace->section_id == Sections::idEvaluacionNuevo() ? 2.5 : 3.57;
+        $multiplicador = $enlace->section_id == Sections::idEvaluacionNuevo() ? 2.5 : 4.16666;
         $evaluacionEntryId = $enlace->entry_id;
 
         $totalPuntos = 0;

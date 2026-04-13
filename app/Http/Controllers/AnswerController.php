@@ -139,7 +139,7 @@ class AnswerController extends Controller
                     }
                 }
             }
-            
+
             return $entry;
         });
 
@@ -179,9 +179,9 @@ class AnswerController extends Controller
 
         $entry = Entry::with(['answers.question', 'answers'])->findOrFail($id);
         //dd($entry, Auth::user()->id);
-
+        //dd(Auth::user()->hasRole('admin'));
         // 2. Seguridad: Verificar que el entry pertenece al usuario logueado+
-        if ((($entry->user_id !== Auth::user()->id) && (Auth::user()->hasRole('admin')))) {
+        if ((($entry->user_id !== Auth::user()->id) && (!Auth::user()->hasRole('admin')))) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
 
@@ -220,7 +220,7 @@ class AnswerController extends Controller
     {
         $entry = Entry::findOrFail($id);
 
-        if ($entry->user_id !== Auth::user()->id) {
+        if ((($entry->user_id !== Auth::user()->id) && (!Auth::user()->hasRole('admin')))) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
         if (! $entry->is_editable) {

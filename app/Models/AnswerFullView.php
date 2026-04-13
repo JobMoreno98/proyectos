@@ -88,9 +88,20 @@ class AnswerFullView extends Model
         }
 
         $datos = json_decode($evalaudor->datos_json, true);
+
         $datos = array_map(function ($valor) {
+            // Intenta decodificar el valor como JSON
+            $decoded = json_decode($valor, true);
+
+            // Si se pudo decodificar y no es null, usa ese valor
+            if ($decoded !== null) {
+                return $decoded;
+            }
+
+            // Si no, elimina comillas sobrantes y devuelve el valor original
             return trim($valor, '"');
         }, $datos);
+
 
         $keys =  array_map(['App\Models\AnswerFullView', 'slugify'], array_keys($datos));
 
@@ -213,7 +224,7 @@ class AnswerFullView extends Model
         if ($enlace->section_id == Sections::idEvaluacionNuevo()) {
             $multiplicador = 2.5;
         } else {
-            $multiplicador = 3.57;
+            $multiplicador = 4.16;
         }
         $evaluacionEntryId = $enlace->entry_id;
 
@@ -254,8 +265,6 @@ class AnswerFullView extends Model
             }
         }
 
-
-
         return $totalPuntos * $multiplicador ?? 'Sin evaluar';
     }
 
@@ -285,7 +294,7 @@ class AnswerFullView extends Model
             ->where('entry_id', $this->id_evaluacion)
             ->pluck('respuesta')
             ->toArray();
-        
+
 
         $sub_forms = array_merge($evaluacion, $sub_forms);
 

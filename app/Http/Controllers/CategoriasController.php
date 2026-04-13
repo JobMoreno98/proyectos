@@ -129,6 +129,7 @@ class CategoriasController extends Controller
             ->addColumn('evaluador', function ($row) {
                 return isset($row->evalaudor_data['nombres'])
                     ? $row->evalaudor_data['nombres'] . ' ' . ($row->evalaudor_data['apellido-paterno'] ?? '')
+                    . ' ' . ($row->evalaudor_data['apellido-materno'] ?? '')
                     : 'Sin evaluador';
             })
             ->addColumn('evaluacion', function ($row) {
@@ -137,13 +138,17 @@ class CategoriasController extends Controller
 
                 if (is_numeric($calificacion)) {
                     if ($calificacion >= 80) {
+                        $calificacion = $calificacion . " /  Aprobado";
                         $color = 'text-green-700 bg-green-50 ring-green-600/20';
                     } elseif ($calificacion >= 60) {
+                        $calificacion = $calificacion . " /  Revisión";
                         $color = 'text-yellow-700 bg-yellow-50 ring-yellow-600/20';
                     } else {
+                        $calificacion = $calificacion . " /  Deficiente";
                         $color = 'text-red-700 bg-red-50 ring-red-600/10';
                     }
                 }
+
 
                 return '<div class="flex items-center gap-2">
                 <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ' . $color . '">' . $calificacion . '</span></div>';
@@ -373,7 +378,18 @@ class CategoriasController extends Controller
                     ? $row->evalaudor_data['nombres'] . ' ' . ($row->evalaudor_data['apellido-paterno'] ?? '')
                     : 'Sin evaluador';
 
+
                 $calificacion = $row->obtenerCalificacionDeEvaluacion();
+
+                if (is_numeric($calificacion)) {
+                    if ($calificacion >= 80) {
+                        $calificacion = $calificacion . " /  Aprobado";
+                    } elseif ($calificacion >= 60) {
+                        $calificacion = $calificacion . " /  Revisión";
+                    } else {
+                        $calificacion = $calificacion . " /  Deficiente";
+                    }
+                }
 
                 fputcsv($file, [$folio, $nombre, $titulo, $evaluador, $calificacion]);
             }

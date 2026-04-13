@@ -115,11 +115,11 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
             if ($evaluacionId && isset($respuestasEvaluacion[$evaluacionId])) {
 
-                $multiplicador = 3.57; // default
+                $multiplicador = 4.1666; // default
 
                 foreach ($respuestasEvaluacion[$evaluacionId] as $item) {
                     if ($item->pregunta === 'Proyecto') {
-                        $multiplicador = $item->section_id == Sections::idEvaluacionNuevo() ? 2.5 : 3.57142;
+                        $multiplicador = $item->section_id == Sections::idEvaluacionNuevo() ? 2.5 : 4.16666;
 
                         break;
                     }
@@ -149,6 +149,13 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
                 //dd($hijosIds, $total, $multiplicador, $total * $multiplicador);
 
                 $calificacion = $total * $multiplicador;
+                if ($calificacion >= 80) {
+                    $calificacion = $calificacion . " /  Aprobado";
+                } elseif ($calificacion >= 60) {
+                    $calificacion = $calificacion . " /  Revisión";
+                } else {
+                    $calificacion = $calificacion . " /  Deficiente";
+                }
             }
 
             $fila = [
@@ -245,7 +252,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
     }
     public function columnWidths(): array
     {
-        $totalColumnas = 4 + count($this->preguntasConfig); 
+        $totalColumnas = 4 + count($this->preguntasConfig);
 
         $widths = [];
 
