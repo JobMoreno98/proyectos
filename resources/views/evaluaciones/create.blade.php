@@ -26,7 +26,7 @@
 
 
             {{-- IMPORTANTE: enctype es necesario para subir archivos --}}
-            <form action="{{ route('proyectos.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <form action="{{ route('evaluacion.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
                 @csrf
                 <div class="bg-white shadow rounded-lg p-6 border-t-2 border-blue-500">
 

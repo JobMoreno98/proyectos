@@ -6,12 +6,14 @@ use App\Http\Requests\StoreSurveyRequest;
 use App\Models\Answer;
 use App\Models\AnswerFullView;
 use App\Models\Categorias;
+use App\Models\Ciclos;
 use App\Models\Entry;
 use App\Models\Questions;
 use App\Models\Sections;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class EvaluacionesController extends Controller
 {
@@ -41,6 +43,110 @@ class EvaluacionesController extends Controller
 
         $seccion = Sections::with('questions')->where('id', $idSeccionEvaluacion)->first();
     }
+
+    public function store(StoreSurveyRequest $request)
+    {
+        $validated = $request->validated();
+
+        $mainEntry = DB::transaction(function () use ($request, $validated) {
+            //dd($request->section_ids);
+
+            $idProyectos = Sections::idProyectos();
+
+            $fecha  = date('Y-m-d');
+            if ($idProyectos == (int)implode($request->section_ids)) {
+                $ciclo = Ciclos::whereJsonContains(
+                    'sistemas',
+                    'investigacion'
+                )->where('activo', true)
+                    ->whereDate('inicio', '<=', $fecha)
+                    ->whereDate('fin', '>=', $fecha)
+                    ->latest()
+                    ->first();
+            } else {
+                $ciclo = Ciclos::whereJsonContains(
+                    'sistemas',
+                    'investigacion'
+                )
+                    ->latest()
+                    ->first();
+            }
+
+
+            if (!isset($ciclo->id) && !Auth::user()->hasRole('admin')) {
+                //abort(403, "Te encuentras fuera del tiempo de registro.");
+                Alert::info('Alto', 'Te encuentras fuera del tiempo de registro de proyetos');
+                return redirect()->route('dashboard');
+            }
+
+            $entry = Entry::create([
+                'user_id' => Auth::id(),
+                'ciclo_id' => $ciclo->id
+                // 'is_editable' => true, // Si usas este campo
+            ]);
+
+            // 2. GUARDAR RESPUESTAS NORMALES (Nivel Padre)
+            if (!empty($validated['answers'])) {
+                foreach ($validated['answers'] as $questionId => $value) {
+
+                    // A. Lógica de Archivos (Padre)
+                    if ($request->hasFile("answers.{$questionId}")) {
+                        $value = $request->file("answers.{$questionId}")->store('uploads', 'public');
+                    }
+
+                    // B. Guardar Respuesta
+                    $entry->answers()->create([
+                        'question_id' => $questionId,
+                        'value' => $value,
+                    ]);
+                }
+            }
+
+            // 3. GUARDAR SUB-FORMULARIOS (Nivel Hijo)
+            // Estructura: sub_answers[ID_PREGUNTA_PADRE][ID_PREGUNTA_HIJA] = VALOR
+            if (!empty($validated['sub_answers'])) {
+                foreach ($validated['sub_answers'] as $parentQuestionId => $childData) {
+
+                    // A. Crear el Entry "Hijo" (El contenedor de la sub-sección)
+                    // Se crea igual que el padre, solo cambia su contenido
+                    $childEntry = Entry::create([
+                        'user_id' => Auth::id(),
+                        'ciclo_id' => $ciclo->id
+                    ]);
+
+                    // B. VINCULAR PADRE CON HIJO
+                    // En la pregunta 31 del Padre, guardamos el ID del Entry Hijo (ej: "502")
+                    $entry->answers()->create([
+                        'question_id' => $parentQuestionId, // Ej: 31
+                        'value' => $childEntry->id,         // Aquí está la magia
+                    ]);
+
+                    // C. Guardar las Respuestas del Hijo
+                    foreach ($childData as $childQuestionId => $childValue) {
+
+                        // Lógica de Archivos (Hijo)
+                        // Nota el nombre del input: sub_answers.31.26
+                        if ($request->hasFile("sub_answers.{$parentQuestionId}.{$childQuestionId}")) {
+                            $childValue = $request->file("sub_answers.{$parentQuestionId}.{$childQuestionId}")
+                                ->store('uploads', 'public');
+                        }
+
+                        // Guardamos vinculado al ENTRY HIJO, no al padre
+                        $childEntry->answers()->create([
+                            'question_id' => $childQuestionId,
+                            'value' => is_array($childValue) ? json_encode($childValue) : $childValue,
+                        ]);
+                    }
+                }
+            }
+
+            return $entry;
+        });
+
+        return redirect()->route('evaluacion.edit', $mainEntry)
+            ->with('success', 'Registrado correctamente.');
+    }
+
 
     public function show($id)
     {
@@ -139,9 +245,6 @@ class EvaluacionesController extends Controller
                 }
             }
 
-            // =========================================================
-            // PARTE 2: SUB-FORMULARIOS (CORREGIDO PARA TU TABLA ENTRIES)
-            // =========================================================
             if (!empty($validated['sub_answers'])) {
 
                 foreach ($validated['sub_answers'] as $parentQId => $incomingChildData) {
