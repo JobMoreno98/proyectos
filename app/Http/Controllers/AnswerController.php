@@ -34,7 +34,6 @@ class AnswerController extends Controller
     public function create($id)
     {
 
-
         $seccion = Sections::with('questions')->where('id', $id)->first();
 
         return view('respuestas.create', compact('seccion'));
@@ -348,8 +347,16 @@ class AnswerController extends Controller
         return redirect()->route('dashboard')->with('success', 'Este formulario se ha eliminado de forma exitosa.');
     }
 
-    public function asignar(Entry $id)
+    public function asignar($id)
     {
+        $asigar = Sections::idAsignaciones();
+        $seccion = Sections::with('questions')->where('id', $asigar)->first();
+       // dd($seccion);
+
+        $proyectoID = $id;
+
+        return view('asignaciones.create', compact('seccion', 'proyectoID'));
+
         return $id;
     }
 

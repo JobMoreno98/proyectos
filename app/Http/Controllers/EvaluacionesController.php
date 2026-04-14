@@ -23,7 +23,6 @@ class EvaluacionesController extends Controller
 
         $tipo = AnswerFullView::where('entry_id', $id)->where('question_id', Questions::idTipo())->value('respuesta');
         if (strcmp($tipo, "N") == 0) {
-
             $idSeccionEvaluacion = Sections::idEvaluacionNuevo();
         } else {
             $idSeccionEvaluacion = Sections::idEvaluacionContinuacion();
