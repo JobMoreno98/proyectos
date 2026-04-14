@@ -81,6 +81,44 @@ class User extends Authenticatable
     public function getNombreAttribute()
     {
         $datos = $this->datosGenerales->datos_json;
-        return (trim($datos['Nombres'], '"') ?? '') . ' ' . (trim($datos['Apellido Paterno'], '"') ?? '');
+
+        $datos = array_map(function ($valor) {
+            // Intenta decodificar el valor como JSON
+            $decoded = json_decode($valor, true);
+
+            // Si se pudo decodificar y no es null, usa ese valor
+            if ($decoded !== null) {
+                return $decoded;
+            }
+
+            // Si no, elimina comillas sobrantes y devuelve el valor original
+            return trim($valor, '"');
+        }, $datos);
+
+
+        $keys =  array_map(['App\Models\User', 'slugify'], array_keys($datos));
+
+        $datos_slug = array_combine($keys, $datos);
+        //dd($datos_slug);
+
+        return (trim($datos_slug['nombres'], '"') ?? '') . ' ' . (trim($datos_slug['apellido-paterno'], '"') ?? '') . ' ' . (trim($datos_slug['apellido-materno'], '"') ?? '');
+    }
+
+    private static function slugify($text)
+    {
+        $text = str_replace(
+            ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ', 'Á', 'É', 'Í', 'Ó', 'Ú', 'Ü', 'Ñ'],
+            ['a', 'e', 'i', 'o', 'u', 'u', 'n', 'a', 'e', 'i', 'o', 'u', 'u', 'n'],
+            $text
+        );
+
+        // Pasar a minúsculas
+        $text = strtolower($text);
+
+        // Reemplazar cualquier cosa que no sea letras/números por guiones
+        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+
+        // Quitar guiones al inicio/fin
+        return trim($text, '-');
     }
 }

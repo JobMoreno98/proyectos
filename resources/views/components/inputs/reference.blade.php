@@ -19,7 +19,8 @@
 
         $options = \App\Models\AnswerFullView::query()
             ->where('question_id', $sourceQuestionId)
-            ->whereNotIn('entry_id', $idsYaEvaluados)->orderBy('respuesta')
+            ->whereNotIn('entry_id', $idsYaEvaluados)
+            ->orderBy('respuesta')
             ->distinct()
             ->pluck('respuesta', 'entry_id')
             ->toArray();
@@ -32,7 +33,7 @@
 
 @endphp
 
-<x-inputs.wrapper  :label="$question->label" :name="$inputName" :required="$question->is_required" :helperText="$question->helper_text" {{-- Pasamos clases extra si las hubiera --}}>
+<x-inputs.wrapper :label="$question->label" :name="$inputName" :required="$question->is_required" :helperText="$question->helper_text" {{-- Pasamos clases extra si las hubiera --}}>
     @push('styles')
         <style>
             .ts-dropdown .option {

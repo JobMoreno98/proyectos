@@ -19,6 +19,7 @@
 
     $placeholder = $isEmpty ? 'No hay datos previos (Completa la sección anterior)' : 'Selecciona una opción...';
     $inputName = $name ?? "answers[{$question->id}]";
+    //dd($options->first()->nombre);
 @endphp
 
 {{-- 
@@ -38,6 +39,7 @@
         <option value="">{{ $placeholder }}</option>
 
         {{-- Iteramos las opciones que sacamos de la BD --}}
+
         @foreach ($options as $val => $text)
             <option value="{{ $text->id }}" {{-- Marcamos seleccionado si coincide con el valor guardado --}} @selected((string) $text->id === (string) $value)>
                 {{ $text->nombre }}
