@@ -335,14 +335,18 @@ class AnswerController extends Controller
     {
         $entry = Entry::findOrFail($id);
 
+
         if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin')) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
-        if (! $entry->is_editable) {
+        //dd(!$entry->is_editable && !Auth::user()->hasRole('admin'));
+        if (! $entry->is_editable && !Auth::user()->hasRole('admin')) {
             return redirect()->route('dashboard')
                 ->with('error', 'Este formulario ya fue enviado y no puede ser modificado.');
         }
+
         $entry->delete();
+
 
         return redirect()->route('dashboard')->with('success', 'Este formulario se ha eliminado de forma exitosa.');
     }
@@ -351,7 +355,7 @@ class AnswerController extends Controller
     {
         $asigar = Sections::idAsignaciones();
         $seccion = Sections::with('questions')->where('id', $asigar)->first();
-       // dd($seccion);
+        // dd($seccion);
 
         $proyectoID = $id;
 
