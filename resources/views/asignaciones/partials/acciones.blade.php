@@ -21,7 +21,7 @@
                 <flux:icon.trash variant="mini" />
             </button>
         </form>
-        
+
     @else
         <a href="{{ route('asginar.proyecto', $value->entry_id) }}"
             class="text-indigo-600 hover:text-indigo-900 text-sm font-medium">
@@ -51,10 +51,5 @@
 
             </a>
         @endif
-
-
-
-
-
     @endisset
 </div>

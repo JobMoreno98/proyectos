@@ -39,6 +39,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             'Código',
             'Nombre',
             'Ciclo',
+            'Evaluador',
             'Calificación'
         ];
 
@@ -51,6 +52,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
     public function array(): array
     {
+        //dd($this->preguntasConfig);
         $filasExcel = [];
 
         $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)
@@ -59,24 +61,58 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             ->groupBy('entry_id')
             ->map(fn($items) => $items->pluck('respuesta', 'question_id'));
 
-        $entryIds = $respuestasPlanas->keys();
+        // 
 
+
+        $entryIds = $respuestasPlanas->keys();
 
         $proyectosPrincipales = AnswerFullView::whereIn('entry_id', $entryIds)
             ->where('section_title', 'Proyectos de Investigación')
             ->with(['user', 'ciclo'])
             ->get()
             ->unique('entry_id');
-
+        //dd($entryIds);
         $evaluacionesMap = AnswerFullView::where('pregunta', 'Proyecto')
             ->whereIn('respuesta', $entryIds)
             ->whereIn('section_id', [
                 Sections::idEvaluacionNuevo(),
-                Sections::idEvaluacionContinuacion()
+                Sections::idEvaluacionContinuacion(),
+                Sections::idAsignaciones()
             ])
+            //->toSql();
             ->pluck('entry_id', 'respuesta');
 
+        $evaluadores = AnswerFullView::where('pregunta', 'Evaluador')
+            ->whereIn('section_id', [
+                Sections::idAsignaciones()
+            ])->leftjoin('view_datos_generales', 'answers_view.respuesta', '=', 'view_datos_generales.user_id')
+            ->get();
+
+
+        $asignaciones = AnswerFullView::where('pregunta', 'Proyecto')
+            ->whereIn('section_id', [
+                Sections::idAsignaciones()
+            ])
+            ->get();
+
+        $merged = $evaluadores->merge($asignaciones);
+        dd($merged, $asignaciones, $evaluadores);
+        // Agrupar por 'respuesta'
+        $resultado = $merged->groupBy('respuesta');
+
+
+        // Si quieres que cada grupo conserve todos los atributos:
+        $resultado = $resultado->map(function ($items, $respuesta) {
+            return $items->map(function ($item) {
+                return $item->toArray();
+            });
+        });
+
+        dd($resultado);
+
+
         $evaluacionIds = $evaluacionesMap->values();
+        //dd($evaluacionIds);
 
         $subForms = AnswerFullView::where('tipo', 'sub_form')
             ->where(function ($q) use ($entryIds, $evaluacionIds) {
@@ -97,6 +133,8 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             ->groupBy('entry_id');
 
         $preguntasSubFormIds = Questions::where('type', 'sub_form')->pluck('id')->toArray();
+
+        //dd($pregunta);
 
 
         foreach ($proyectosPrincipales as $proyecto) {
@@ -157,11 +195,12 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
                     $calificacion = $calificacion . " /  Deficiente";
                 }
             }
-
+            $evaluador = $proyecto->evalaudor_data;
             $fila = [
                 $user->datos_limpios['Código'] ?? '',
                 $nombreCompleto,
                 $proyecto->ciclo->nombre ?? '',
+                $evaluador['nombres'] . " " . $evaluador['apellido-paterno'] . " " . $evaluador['apellido-materno'],
                 $calificacion,
             ];
 
