@@ -20,10 +20,10 @@ class ExportadorDinamico extends Component
         // 1. Buscamos las secciones principales
         $categoriasIds = Categorias::whereJsonContains('sistema', 'investigacion')->pluck('id');
 
-        $this->secciones = Sections::whereIn('categoria_id', $categoriasIds)
+        $this->secciones = Sections::whereIn('categoria_id', $categoriasIds)->where('title', '!=', 'Archivos')
             ->with(['questions' => function ($query) {
                 $query->orderBy('sort_order');
-            }])
+            }])->whereNotIn('id', [Sections::idAsignaciones()])
             ->orderBy('sort_order')->where('investigacion', 1)
             ->get();
 
@@ -31,7 +31,7 @@ class ExportadorDinamico extends Component
         $subSectionIds = [];
         foreach ($this->secciones as $seccion) {
             foreach ($seccion->questions as $q) {
-                if ($q->type === 'sub_form' && !empty($q->options['target_section_id'])) {
+                if ($q->type === 'sub_form' && !empty($q->options['target_section_id']) && $q->label != 'Archivos' && $q->label != 'Informe de resultados') {
                     $subSectionIds[] = $q->options['target_section_id'];
                 }
             }

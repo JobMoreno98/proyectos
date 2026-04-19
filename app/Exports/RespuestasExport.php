@@ -19,7 +19,6 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
     private $cacheLimpieza = [];
 
-
     private $dataEvaluaciones;
     private $preguntasSubFormIds;
 
@@ -27,21 +26,12 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
     {
         $this->preguntaIds = $preguntaIds;
 
-        $this->preguntasConfig = Questions::whereIn('id', $this->preguntaIds)
-            ->orderBy('section_id')
-            ->orderBy('sort_order')
-            ->get();
+        $this->preguntasConfig = Questions::whereIn('id', $this->preguntaIds)->orderBy('section_id')->orderBy('sort_order')->get();
     }
 
     public function headings(): array
     {
-        $encabezados = [
-            'Código',
-            'Nombre',
-            'Ciclo',
-            'Evaluador',
-            'Calificación'
-        ];
+        $encabezados = ['Código', 'Nombre', 'Ciclo', 'Evaluador', 'Calificación'];
 
         foreach ($this->preguntasConfig as $pregunta) {
             $encabezados[] = $pregunta->label;
@@ -55,14 +45,9 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
         //dd($this->preguntasConfig);
         $filasExcel = [];
 
-        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)
-            ->select('entry_id', 'question_id', 'respuesta')
-            ->get()
-            ->groupBy('entry_id')
-            ->map(fn($items) => $items->pluck('respuesta', 'question_id'));
+        $respuestasPlanas = AnswerFullView::whereIn('question_id', $this->preguntaIds)->select('entry_id', 'question_id', 'respuesta')->get()->groupBy('entry_id')->map(fn($items) => $items->pluck('respuesta', 'question_id'));
 
-        // 
-
+        //
 
         $entryIds = $respuestasPlanas->keys();
 
@@ -77,82 +62,82 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             ->whereIn('section_id', [
                 Sections::idEvaluacionNuevo(),
                 Sections::idEvaluacionContinuacion(),
-                Sections::idAsignaciones()
             ])
             //->toSql();
             ->pluck('entry_id', 'respuesta');
 
         $evaluadores = AnswerFullView::where('pregunta', 'Evaluador')
-            ->whereIn('section_id', [
-                Sections::idAsignaciones()
-            ])->leftjoin('view_datos_generales', 'answers_view.respuesta', '=', 'view_datos_generales.user_id')
+            ->whereIn('section_id', [Sections::idAsignaciones()])
+            ->leftjoin('view_datos_generales', 'answers_view.respuesta', '=', 'view_datos_generales.user_id')
             ->get();
 
+        $asignaciones = AnswerFullView::select('pregunta', 'respuesta', 'entry_id')->whereIn('section_id', [Sections::idAsignaciones()])
+            ->get()->groupBy('entry_id');
 
-        $asignaciones = AnswerFullView::where('pregunta', 'Proyecto')
-            ->whereIn('section_id', [
-                Sections::idAsignaciones()
-            ])
-            ->get();
+        $evaluadoresIndexados = $evaluadores->toBase()->keyBy('respuesta');
 
-        $merged = $evaluadores->merge($asignaciones);
-        dd($merged, $asignaciones, $evaluadores);
-        // Agrupar por 'respuesta'
-        $resultado = $merged->groupBy('respuesta');
+        $data_evaluador = $asignaciones->mapWithKeys(function ($asignacion) use ($evaluadoresIndexados) {
+            $evaluador_id = $asignacion->where('pregunta', 'Evaluador')->first()->respuesta;
+            $evaluador = $evaluadoresIndexados->get($evaluador_id);
+            //dd($evaluador, $asignacion->where('pregunta', 'Evaluador')->first()->respuesta);
+            $datosRaw = ($evaluador && !empty($evaluador->datos_json))
+                ? json_decode($evaluador->datos_json, true)
+                : [];
 
+            // 2. Tu método de limpieza recursiva/masiva
+            $datosLimpios = array_map(function ($valor) {
+                if (!is_string($valor)) return $valor;
 
-        // Si quieres que cada grupo conserve todos los atributos:
-        $resultado = $resultado->map(function ($items, $respuesta) {
-            return $items->map(function ($item) {
-                return $item->toArray();
-            });
+                $decoded = json_decode($valor, true);
+
+                // Si el valor interno era un JSON (el doble escape), usamos el decodificado
+                if (json_last_error() === JSON_ERROR_NONE && $decoded !== null) {
+                    return $decoded;
+                }
+
+                // Si no, solo quitamos comillas físicas
+                return trim($valor, '"');
+            }, $datosRaw);
+
+            return [
+                $asignacion->where('pregunta', 'Proyecto')->first()->respuesta => [
+                    'entry_id'         => $asignacion->first()->entry_id,
+                    'nombre'          => $datosLimpios['Nombres'] . " " . $datosLimpios['Apellido Paterno'] . " " . $datosLimpios['Apellido Materno'],
+                ]
+            ];
         });
 
-        dd($resultado);
-
-
         $evaluacionIds = $evaluacionesMap->values();
-        //dd($evaluacionIds);
 
         $subForms = AnswerFullView::where('tipo', 'sub_form')
             ->where(function ($q) use ($entryIds, $evaluacionIds) {
-                $q->whereIn('entry_id', $entryIds)
-                    ->orWhereIn('entry_id', $evaluacionIds);
+                $q->whereIn('entry_id', $entryIds)->orWhereIn('entry_id', $evaluacionIds);
             })
             ->get()
             ->groupBy('entry_id');
 
         $subFormIds = $subForms->flatten()->pluck('respuesta')->filter()->unique();
 
-        $subFormsRespuestas = AnswerFullView::whereIn('entry_id', $subFormIds)
-            ->get()
-            ->groupBy('entry_id');
+        $subFormsRespuestas = AnswerFullView::whereIn('entry_id', $subFormIds)->get()->groupBy('entry_id');
 
-        $respuestasEvaluacion = AnswerFullView::whereIn('entry_id', $evaluacionIds)
-            ->get()
-            ->groupBy('entry_id');
+        $respuestasEvaluacion = AnswerFullView::whereIn('entry_id', $evaluacionIds)->get()->groupBy('entry_id');
 
         $preguntasSubFormIds = Questions::where('type', 'sub_form')->pluck('id')->toArray();
 
         //dd($pregunta);
 
-
         foreach ($proyectosPrincipales as $proyecto) {
-
             $user = $proyecto->user;
 
-            $nombreCompleto = mb_strtoupper(trim(
-                ($user->datos_limpios['Apellido Paterno'] ?? '') . " " .
-                    ($user->datos_limpios['Apellido Materno'] ?? '') . " " .
-                    ($user->datos_limpios['Nombres'] ?? '')
-            ), 'UTF-8');
+            $nombreCompleto = mb_strtoupper(trim(($user->datos_limpios['Apellido Paterno'] ?? '') . ' ' . ($user->datos_limpios['Apellido Materno'] ?? '') . ' ' . ($user->datos_limpios['Nombres'] ?? '')), 'UTF-8');
 
             $evaluacionId = $evaluacionesMap[$proyecto->entry_id] ?? null;
 
             $calificacion = 'Sin evaluar';
+            $evaluador_data = $data_evaluador->get($proyecto->entry_id);
+            $evaluador_nombre = ($evaluador_data) ?  $evaluador_data['nombre'] : 'No asigando';
 
             if ($evaluacionId && isset($respuestasEvaluacion[$evaluacionId])) {
-
                 $multiplicador = 4.1666; // default
 
                 foreach ($respuestasEvaluacion[$evaluacionId] as $item) {
@@ -169,7 +154,9 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
                 foreach ($respuestasEvaluacion[$evaluacionId] as $item) {
                     $valor = trim($item->respuesta);
                     if (in_array($item->question_id, $preguntasSubFormIds)) {
-                        if (is_numeric($valor)) $hijosIds[] = $valor;
+                        if (is_numeric($valor)) {
+                            $hijosIds[] = $valor;
+                        }
                     }
                 }
 
@@ -188,20 +175,19 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
                 $calificacion = $total * $multiplicador;
                 if ($calificacion >= 80) {
-                    $calificacion = $calificacion . " /  Aprobado";
+                    $calificacion = $calificacion . ' /  Aprobado';
                 } elseif ($calificacion >= 60) {
-                    $calificacion = $calificacion . " /  Revisión";
+                    $calificacion = $calificacion . ' /  Revisión';
                 } else {
-                    $calificacion = $calificacion . " /  Deficiente";
+                    $calificacion = $calificacion . ' /  Deficiente';
                 }
             }
-            $evaluador = $proyecto->evalaudor_data;
             $fila = [
                 $user->datos_limpios['Código'] ?? '',
                 $nombreCompleto,
                 $proyecto->ciclo->nombre ?? '',
-                $evaluador['nombres'] . " " . $evaluador['apellido-paterno'] . " " . $evaluador['apellido-materno'],
-                $calificacion,
+                $evaluador_nombre,
+                $calificacion
             ];
 
             $respuestasEntry = $respuestasPlanas->get($proyecto->entry_id, collect());
@@ -211,20 +197,11 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
             $ids = [];
 
             if (isset($subForms[$proyecto->entry_id])) {
-                $ids = array_merge(
-                    $ids,
-                    $subForms[$proyecto->entry_id]
-                        ->where('section_title', '!=', 'Archivos')
-                        ->pluck('respuesta')
-                        ->toArray()
-                );
+                $ids = array_merge($ids, $subForms[$proyecto->entry_id]->where('section_title', '!=', 'Archivos')->pluck('respuesta')->toArray());
             }
 
             if ($evaluacionId && isset($subForms[$evaluacionId])) {
-                $ids = array_merge(
-                    $ids,
-                    $subForms[$evaluacionId]->pluck('respuesta')->toArray()
-                );
+                $ids = array_merge($ids, $subForms[$evaluacionId]->pluck('respuesta')->toArray());
             }
 
             foreach ($ids as $id) {
@@ -262,19 +239,18 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
         return $filasExcel;
     }
 
-
     private function limpiarHtml($texto)
     {
-        if (!is_string($texto) || empty($texto)) return $texto;
+        if (!is_string($texto) || empty($texto)) {
+            return $texto;
+        }
 
         $hash = md5($texto);
-        if (isset($this->cacheLimpieza[$hash])) return $this->cacheLimpieza[$hash];
+        if (isset($this->cacheLimpieza[$hash])) {
+            return $this->cacheLimpieza[$hash];
+        }
 
-        $textoLimpio = str_ireplace(
-            ['<br>', '<br/>', '<br />', '</p>', '</li>', '</ul>', '</h1>', '</h2>', '</h3>'],
-            "\n",
-            $texto
-        );
+        $textoLimpio = str_ireplace(['<br>', '<br/>', '<br />', '</p>', '</li>', '</ul>', '</h1>', '</h2>', '</h3>'], "\n", $texto);
 
         $textoLimpio = strip_tags($textoLimpio);
         $textoLimpio = html_entity_decode($textoLimpio, ENT_QUOTES | ENT_HTML5, 'UTF-8');
@@ -285,9 +261,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
 
     public function styles(Worksheet $sheet)
     {
-        $sheet->getStyle($sheet->calculateWorksheetDimension())
-            ->getAlignment()
-            ->setWrapText(true);
+        $sheet->getStyle($sheet->calculateWorksheetDimension())->getAlignment()->setWrapText(true);
     }
     public function columnWidths(): array
     {
@@ -306,7 +280,7 @@ class RespuestasExport implements FromArray, WithHeadings, ShouldAutoSize, WithS
     {
         $letter = '';
         while ($index >= 0) {
-            $letter = chr($index % 26 + 65) . $letter;
+            $letter = chr(($index % 26) + 65) . $letter;
             $index = intdiv($index, 26) - 1;
         }
         return $letter;
