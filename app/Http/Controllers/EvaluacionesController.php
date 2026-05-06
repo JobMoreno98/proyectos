@@ -10,6 +10,7 @@ use App\Models\Ciclos;
 use App\Models\Entry;
 use App\Models\Questions;
 use App\Models\Sections;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -315,5 +316,32 @@ class EvaluacionesController extends Controller
         });
 
         return redirect()->route('evaluacion.edit', $id)->with('success', 'Actualizado correctamente.');
+    }
+
+    public function imprimir($id)
+    {
+        // 1. Cargamos los datos exactamente igual que en tu vista web
+        $entry = Entry::with('answers')->findOrFail($id);
+
+        if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin')) {
+            abort(403, 'No tienes permiso para imprimir este registro.');
+        }
+        $idSecion = ($entry->answers->first()->question->section_id);
+
+        $seccion = \App\Models\Sections::with(['questions' => function ($q) {
+            $q->orderBy('sort_order'); // Asegurar orden correcto
+        }])->where('id', $idSecion)->orderBy('sort_order')->first();
+
+        $answersMap = $entry->answers->keyBy('question_id');
+
+        // 2. Generamos el PDF apuntando a una vista nueva y exclusiva para impresión
+        $pdf = Pdf::loadView('asignaciones.partials.pdf', [
+            'entry' => $entry,
+            'seccion' => $seccion,
+            'answersMap' => $answersMap,    
+        ]);
+
+        // 3. Devolvemos el archivo para que el navegador lo descargue
+        return $pdf->stream('formulario_' . $entry->id . '.pdf');
     }
 }

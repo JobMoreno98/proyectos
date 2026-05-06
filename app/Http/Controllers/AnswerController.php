@@ -361,7 +361,6 @@ class AnswerController extends Controller
 
         return view('asignaciones.create', compact('seccion', 'proyectoID'));
 
-        return $id;
     }
 
     public function definitivo($id)
@@ -371,7 +370,6 @@ class AnswerController extends Controller
         if ($entry->user_id !== Auth::user()->id && !Auth::user()->hasRole('admin')) {
             abort(403, 'No tienes permiso para editar este registro.');
         }
-
         $entry->is_editable = $entry->is_editable ? 0 : 1;
         $entry->update();
         return redirect()->route('dashboard')

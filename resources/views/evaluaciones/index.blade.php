@@ -26,7 +26,7 @@
                             </a>
                         
                             @if (isset($value->evaluacion))
-                                <a target="_blank" href="{{ route('proyectos.print', $value->evaluacion->entry_id) }}"
+                                <a target="_blank" href="{{ route('evaluacion.print', $value->evaluacion->entry_id) }}"
                                     class="text-black-600 hover:text-indigo-900 text-sm font-medium">
                                     <flux:icon.printer variant="mini" />
                                 </a>

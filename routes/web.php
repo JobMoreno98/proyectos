@@ -40,6 +40,8 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
 
     Route::get('/imprimir/{id}', [AnswerController::class, 'imprimir'])->name('proyectos.print');
 
+    Route::get('/imprimir-evaluacion/{id}', [EvaluacionesController::class, 'imprimir'])->name('evaluacion.print');
+
     Route::get('/api/validate-folio', function (Request $request) {
 
         $questionId = $request->input('question_id');
@@ -74,7 +76,7 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
     Route::get('/asignar-rol/{id}', [UserController::class, 'asignar'])->name('asignar.rol')->middleware(isAdmin::class);
     Route::put('/asignar-rol/{id}', [UserController::class, 'add_role'])->name('user.assignRole')->middleware(isAdmin::class);
     Route::get('/exportar-datos', [ExportController::class, 'index'])->name('export.data')->middleware(isAdmin::class);
-    Route::get('/asignaciones-datos',[CategoriasController::class,'datatable'])->name('asignaciones.data')->middleware(isAdmin::class);
+    Route::get('/asignaciones-datos', [CategoriasController::class, 'datatable'])->name('asignaciones.data')->middleware(isAdmin::class);
 
     Route::get('/asignaciones/exportar', [CategoriasController::class, 'exportarExcel'])->name('asignaciones.exportar')->middleware(isAdmin::class);
 });
