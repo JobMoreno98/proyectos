@@ -1,9 +1,6 @@
 <div class="max-w-7xl mx-auto py-10 px-4">
 
     <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-        <div>
-        </div>
-
         <button wire:click="procesarExportacion"
             class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg shadow flex items-center gap-2 transition">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

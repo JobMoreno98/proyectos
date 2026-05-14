@@ -79,6 +79,29 @@ Route::middleware(['auth', 'verified', 'datos.generales'])->group(function () {
     Route::get('/asignaciones-datos', [CategoriasController::class, 'datatable'])->name('asignaciones.data')->middleware(isAdmin::class);
 
     Route::get('/asignaciones/exportar', [CategoriasController::class, 'exportarExcel'])->name('asignaciones.exportar')->middleware(isAdmin::class);
+
+
+    Route::get(
+        '/imprimir-evaluaciones',
+        [EvaluacionesController::class, 'imprimir_evaluaciones']
+    )->name('evaluaciones.generar')->middleware(isAdmin::class);
+
+    Route::get(
+        '/downloads/status/{id}',
+        [EvaluacionesController::class, 'status']
+    )->name('downloads.status')->middleware(isAdmin::class);
+
+
+    Route::get(
+        '/downloads/{id}',
+        [EvaluacionesController::class, 'download']
+    )->name('downloads.file')->middleware(isAdmin::class);
+
+
+    Route::get(
+        '/descargas',
+        [EvaluacionesController::class, 'descargas_index']
+    )->name('descargas.index')->middleware(isAdmin::class);
 });
 
 require __DIR__ . '/settings.php';

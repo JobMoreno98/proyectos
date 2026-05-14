@@ -190,8 +190,6 @@ class AnswerController extends Controller
         }
 
         // 3. Identificar la Sección
-        // Asumimos que todas las respuestas de un entry son de la misma sección.
-        // Tomamos la sección de la primera respuesta encontrada.
 
         $firstAnswer = $entry->answers->first();
         $sectionId = $firstAnswer ? $firstAnswer->question->section_id : null;

@@ -147,9 +147,7 @@ class CategoriasController extends Controller
                         $calificacion = $calificacion . " /  Deficiente";
                         $color = 'text-red-700 bg-red-50 ring-red-600/10';
                     }
-                }
-
-
+                }             
                 return '<div class="flex items-center gap-2">
                 <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ' . $color . '">' . $calificacion . '</span></div>';
             })

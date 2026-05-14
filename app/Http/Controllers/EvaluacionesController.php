@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSurveyRequest;
+use App\Jobs\GenerarEvaluacionesZipJob;
 use App\Models\Answer;
 use App\Models\AnswerFullView;
 use App\Models\Categorias;
 use App\Models\Ciclos;
 use App\Models\Entry;
+use App\Models\GeneratedDownload;
 use App\Models\Questions;
 use App\Models\Sections;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -15,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use RealRashid\SweetAlert\Facades\Alert;
+use ZipArchive;
 
 class EvaluacionesController extends Controller
 {
@@ -338,10 +341,61 @@ class EvaluacionesController extends Controller
         $pdf = Pdf::loadView('asignaciones.partials.pdf', [
             'entry' => $entry,
             'seccion' => $seccion,
-            'answersMap' => $answersMap,    
+            'answersMap' => $answersMap,
         ]);
 
         // 3. Devolvemos el archivo para que el navegador lo descargue
         return $pdf->stream('formulario_' . $entry->id . '.pdf');
+    }
+
+    public function imprimir_evaluaciones()
+    {
+        $nombre = 'reporte_evaluaciones_' . time() . '.zip';
+        $download = GeneratedDownload::create([
+            'user_id' => auth()->id(),
+            'file_name' => $nombre,
+            'file_path' => "{$nombre}",
+            'status' => 'pending',
+        ]);
+
+        GenerarEvaluacionesZipJob::dispatch($download, $nombre);
+
+        return redirect()->route('descargas.index');
+    }
+
+    public function status($id)
+    {
+        $download = GeneratedDownload::findOrFail($id);
+
+        return response()->json([
+            'status' => $download->status,
+            'file' => $download->file_name,
+        ]);
+    }
+    public function download($id)
+    {
+        $download = GeneratedDownload::findOrFail($id);
+
+        abort_unless(
+            $download->status === 'completed',
+            404
+        );
+
+        $path = storage_path(
+            'app/public/' . $download->file_path
+        );
+
+        abort_unless(file_exists($path), 404);
+
+        return response()->download(
+            $path,
+            $download->file_name
+        );
+    }
+
+    public function descargas_index()
+    {
+        $downloads = GeneratedDownload::orderBy('id','desc')->get();
+        return view('export.descargas', compact('downloads'));
     }
 }
